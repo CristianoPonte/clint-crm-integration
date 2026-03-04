@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload de CSV - Integrador Clint</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <h1 style="margin:0;">Upload de Leads para Clint</h1>
+            <a href="/historico"
+                style="color:rgba(255,255,255,0.6); text-decoration:none; font-size:0.85rem; border:1px solid rgba(255,255,255,0.2); padding:0.4rem 1rem; border-radius:8px; transition:all 0.2s;"
+                onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white';"
+                onmouseout="this.style.background='transparent'; this.style.color='rgba(255,255,255,0.6)';">📋 Ver
+                Histórico</a>
+        </div>
+        <form id="uploadForm" enctype="multipart/form-data">
+
+            <div class="form-group">
+                <label for="csv_file">Arquivo CSV</label>
+                <input type="file" id="csv_file" name="csv_file" accept=".csv" required>
+            </div>
+
+            <div class="form-group">
+                <label for="origin_name">Nome da Origem</label>
+                <input type="text" id="origin_name" name="origin_name" placeholder="Ex: Pesquisa ENAM 2026"
+                    value="Cronograma Anual" required>
+            </div>
+
+            <div class="form-group">
+                <label for="product_name">Produto de Interesse</label>
+                <input type="text" id="product_name" name="product_name" value="Curso Preparatório" required>
+            </div>
+
+            <div class="form-group">
+                <label for="product_value">Valor do Produto</label>
+                <input type="number" id="product_value" name="product_value" step="0.01" value="997.00" required>
+            </div>
+
+            <div class="form-group">
+                <label for="list_tag_name">Tag da Lista</label>
+                <input type="text" id="list_tag_name" name="list_tag_name" placeholder="Ex: lista-enam-2026"
+                    value="teste-integrador" required>
+            </div>
+
+            <button type="submit" id="submitBtn">Enviar Leads</button>
+
+        </form>
+
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p>Processando leads... Por favor, aguarde.</p>
+        </div>
+
+        <div id="result" class="hidden">
+            <div class="result-header">
+                <h2 id="resultTitle">Processamento Concluído</h2>
+            </div>
+            <div class="stats">
+                <div class="stat-card success">
+                    <span class="stat-value" id="countSuccess">0</span>
+                    <span class="stat-label">Sucessos</span>
+                </div>
+                <div class="stat-card error">
+                    <span class="stat-value" id="countError">0</span>
+                    <span class="stat-label">Falhas</span>
+                </div>
+            </div>
+            <div id="errorDetails" class="hidden">
+                <h3>Detalhes das Falhas</h3>
+                <ul id="errorList"></ul>
+            </div>
+            <button onclick="window.location.reload()" style="background: rgba(255,255,255,0.1); margin-top: 1rem;">Novo
+                Upload</button>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            submitBtn.disabled = true;
+            form.classList.add('hidden');
+            loading.classList.remove('hidden');
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                loading.classList.add('hidden');
+                result.classList.remove('hidden');
+
+                if (response.ok) {
+                    document.getElementById('countSuccess').textContent = data.sucessos;
+                    document.getElementById('countError').textContent = data.erros;
+
+                    if (data.erros > 0) {
+                        document.getElementById('errorDetails').classList.remove('hidden');
+                        const errorList = document.getElementById('errorList');
+                        errorList.innerHTML = '';
+                        data.detalhes_falhas.forEach(fail => {
+                            const li = document.createElement('li');
+                            li.textContent = `Linha ${fail.linha} (${fail.email}): ${fail.erro}`;
+                            errorList.appendChild(li);
+                        });
+                    }
+                } else {
+                    document.getElementById('resultTitle').textContent = "Erro na Operação";
+                    document.getElementById('resultTitle').style.color = "#ef4444";
+                    alert(data.detail || "Ocorreu um erro inesperado.");
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert("Falha de conexão com o servidor.");
+                form.classList.remove('hidden');
+                loading.classList.add('hidden');
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

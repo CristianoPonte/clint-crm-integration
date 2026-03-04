@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Importações - Integrador Clint</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .hist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .hist-header a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.4rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .hist-header a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .empty-state p {
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .import-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .import-card:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .import-card.all-success {
+            border-left: 3px solid #22c55e;
+        }
+
+        .import-card.has-failures {
+            border-left: 3px solid #f59e0b;
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .card-info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            margin: 0 0 0.25rem 0;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 0.4rem;
+        }
+
+        .card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .card-badges {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .badge {
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.25rem 0.7rem;
+            border-radius: 20px;
+        }
+
+        .badge-success {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+
+        .badge-error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        .badge-total {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .progress-bar-wrap {
+            margin-top: 0.9rem;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 99px;
+            height: 6px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: #22c55e;
+            transition: width 0.4s ease;
+        }
+
+        .failures-toggle {
+            margin-top: 0.9rem;
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .failures-toggle:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .failures-list {
+            display: none;
+            margin-top: 0.8rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+        }
+
+        .failures-list.open {
+            display: block;
+        }
+
+        .failures-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .failures-list li {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 0.3rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .failures-list li:last-child {
+            border-bottom: none;
+        }
+
+        .failures-list li strong {
+            color: #f87171;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="hist-header">
+            <h1>Histórico de Importações</h1>
+            <a href="/">← Voltar ao Upload</a>
+        </div>
+
+        {% if not historico %}
+        <div class="empty-state">
+            <h2>📭 Nenhuma importação ainda</h2>
+            <p>As importações realizadas aparecerão aqui automaticamente.</p>
+        </div>
+        {% else %}
+        <p style="font-size:0.85rem; color:rgba(255,255,255,0.4); margin-bottom:1.5rem;">
+            {{ historico | length }} importação(ões) registrada(s). Mais recente primeiro.
+        </p>
+
+        {% for item in historico %}
+        {% set pct = ((item.sucesso / item.total_linhas) * 100) | round | int if item.total_linhas > 0 else 0 %}
+        <div class="import-card {{ 'has-failures' if item.falhas > 0 else 'all-success' }}">
+            <div class="card-top">
+                <div class="card-info">
+                    <h3>{{ item.nome_da_origem }}</h3>
+                    <div class="card-meta">
+                        <span>🕐 {{ item.data_hora }}</span>
+                        <span>🏷️ {{ item.tag_da_lista }}</span>
+                        <span>📦 {{ item.produto }}</span>
+                        {% if item.valor %}
+                        <span>💰 R$ {{ "%.2f" | format(item.valor) }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-badges">
+                    <span class="badge badge-total">{{ item.total_linhas }} linhas</span>
+                    <span class="badge badge-success">✓ {{ item.sucesso }}</span>
+                    {% if item.falhas > 0 %}
+                    <span class="badge badge-error">✗ {{ item.falhas }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" style="width: {{ pct }}%"></div>
+            </div>
+
+            {% if item.falhas > 0 and item.detalhes_falhas %}
+            <div class="failures-toggle" onclick="toggleFalhas(this)">
+                ▶ Ver {{ item.falhas }} falha(s)
+            </div>
+            <div class="failures-list">
+                <ul>
+                    {% for f in item.detalhes_falhas %}
+                    <li>
+                        <strong>Linha {{ f.linha }}</strong>
+                        {% if f.email %} — {{ f.email }}{% endif %}
+                        — {{ f.erro }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleFalhas(btn) {
+            const list = btn.nextElementSibling;
+            const open = list.classList.toggle('open');
+            btn.textContent = (open ? '▼ Ocultar' : '▶ Ver') + btn.textContent.slice(btn.textContent.indexOf(' '));
+        }
+    </script>
+</body>
+
+</html>
