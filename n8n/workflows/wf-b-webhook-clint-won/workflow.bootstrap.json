@@ -1,0 +1,77 @@
+{
+  "name": "WF B - Webhook Clint Won (Bootstrap)",
+  "nodes": [
+    {
+      "id": "webhook-clint-won",
+      "name": "Webhook Clint Won",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        280,
+        280
+      ],
+      "parameters": {
+        "path": "clint-won",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-parse-payload",
+      "name": "Parse Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        280
+      ],
+      "parameters": {
+        "jsCode": "const payload = $json.body ?? $json;\n\nconst contactId = payload.contact_id ?? payload.contactId ?? null;\nconst dealId = payload.deal_id ?? payload.dealId ?? null;\nconst product = payload.product_name ?? payload.produto ?? null;\nconst value = Number(payload.product_value ?? payload.value ?? 0);\n\nif (!contactId || !dealId) {\n  throw new Error('Payload invalido: contact_id e deal_id sao obrigatorios.');\n}\n\nreturn [\n  {\n    json: {\n      status: 'bootstrap_ready',\n      message: 'Webhook Clint Won validado. Integracoes com Google Sheets e Slack entram na proxima fase.',\n      received_at: new Date().toISOString(),\n      contact_id: contactId,\n      deal_id: dealId,\n      product_name: product,\n      product_value: value\n    }\n  }\n];"
+      }
+    },
+    {
+      "id": "respond-clint-won",
+      "name": "Respond Clint Won",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        840,
+        280
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Clint Won": {
+      "main": [
+        [
+          {
+            "node": "Parse Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Payload": {
+      "main": [
+        [
+          {
+            "node": "Respond Clint Won",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "active": false
+}

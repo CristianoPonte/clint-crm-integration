@@ -12,6 +12,45 @@
 
 ## Notas Técnicas
 
+### Reorganizacao estrutural (Concluida - 2026-03-05)
+- Projeto reorganizado para modelo **n8n-first** com separacao clara entre:
+  - workflows: `n8n/workflows/<workflow>/`
+  - ativos reutilizaveis: `n8n/reusable/`
+  - legado arquivado: `archives/legacy-fastapi-v1/`
+- Workflows migrados para pastas dedicadas:
+  - `n8n/workflows/wf-a-importacao-csv-clint/workflow.fase1.json`
+  - `n8n/workflows/wf-b-webhook-clint-won/workflow.bootstrap.json`
+- Script de deploy movido para:
+  - `n8n/reusable/deployment/n8n_deploy.py`
+- Documentacao de apoio movida para:
+  - `docs/access/`
+  - `docs/reference/`
+  - `docs/history/`
+- Base FastAPI inicial preservada em arquivo para consulta/reuso:
+  - `archives/legacy-fastapi-v1/app/`
+- Observacao: referencias antigas de caminho nas notas historicas abaixo (ex: `main.py`, `services/`) agora correspondem ao legado em `archives/legacy-fastapi-v1/app/`.
+
+### Bootstrap da migração para n8n (Em andamento - 2026-03-05)
+- Criado o diretório `n8n/` com workflows versionados para início da migração:
+  - `n8n/workflows/wf-a-importacao-csv-clint/workflow.fase1.json`
+  - `n8n/workflows/wf-b-webhook-clint-won/workflow.bootstrap.json`
+- Portada para JavaScript (Code node no n8n) a lógica base de mapeamento de campos do `mapper_service.py` no Workflow A (fase inicial).
+- Criado `n8n/reusable/deployment/n8n_deploy.py` para:
+  - validar baseline da API (`users`, `workflows`, `credentials`, `tags`);
+  - fazer create/update de workflows por nome via API n8n.
+- Registrado guia de uso em `n8n/README.md`.
+
+### Fase 1 do n8n (Concluída - 2026-03-05)
+- Workflow A evoluído para execução fim-a-fim de importação Clint:
+  - validação de entrada;
+  - parse de `rows` ou `csv_text` com separador `,`/`;`;
+  - resolução de `origin_id` por nome e `stage_id` tipo `BASE`;
+  - upsert de contato por e-mail com fallback para telefone;
+  - aplicação de tag no contato;
+  - criação de deal com campos customizados (`lista_origem`, `data_importacao`, `produto` etc);
+  - relatório final de sucessos/falhas por linha.
+- Mantido deploy versionado via `n8n/reusable/deployment/n8n_deploy.py`.
+
 ### Atualizações de Definição de Campos (Concluída)
 - Criado o arquivo `regras_custom_fields.md` com as definições de campos para Contact e Deal.
 - Realizada a varredura da API para confirmar a criação dos campos na conta do cliente.
