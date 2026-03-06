@@ -1,0 +1,397 @@
+{
+  "info": {
+    "_postman_id": "b7f3fd9e-cf70-4e58-a65f-7e4f8f7b3d9b",
+    "name": "Clint n8n Webhooks",
+    "description": "Colecao inicial para validar os workflows n8n (WF A e WF B), incluindo cenarios de sucesso, erro e checagens administrativas.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0 - Health",
+      "item": [
+        {
+          "name": "Home - GET",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            },
+            "description": "Checa se o dominio principal esta respondendo."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1 - WF A (Importacao CSV)",
+      "item": [
+        {
+          "name": "WF A - Import 1 Row (Success)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origin_name\": \"{{origin_name}}\",\n  \"product_name\": \"{{product_name}}\",\n  \"product_value\": {{product_value}},\n  \"list_tag_name\": \"{{list_tag_name}}\",\n  \"clint_api_token\": \"{{clint_api_token}}\",\n  \"rows\": [\n    {\n      \"Nome\": \"{{unique_name}}\",\n      \"Email\": \"{{unique_email}}\",\n      \"Telefone\": \"{{phone}}\",\n      \"utm source\": \"postman\",\n      \"utm campaign\": \"wf-a-smoke\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/clint-import-csv",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "webhook",
+                "clint-import-csv"
+              ]
+            },
+            "description": "Executa importacao minima com 1 linha e valida retorno de sucesso."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ts = Date.now();",
+                  "pm.environment.set('unique_email', `teste.postman.${ts}@example.com`);",
+                  "pm.environment.set('unique_name', `Teste Postman ${ts}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "let json;",
+                  "try { json = pm.response.json(); } catch (e) { json = null; }",
+                  "",
+                  "pm.test('Resposta JSON valida', function () {",
+                  "  pm.expect(json).to.be.an('object');",
+                  "});",
+                  "",
+                  "pm.test('Status de negocio esperado', function () {",
+                  "  pm.expect(['success', 'partial_success']).to.include(json.status);",
+                  "});",
+                  "",
+                  "pm.test('Processou 1 linha', function () {",
+                  "  pm.expect(json.total_linhas).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "WF A - Validation Error (Missing Required)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_name\": \"{{product_name}}\",\n  \"product_value\": {{product_value}},\n  \"list_tag_name\": \"{{list_tag_name}}\",\n  \"clint_api_token\": \"{{clint_api_token}}\",\n  \"rows\": [\n    {\n      \"Nome\": \"Erro Sem Origin\",\n      \"Email\": \"erro.sem.origin@example.com\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/clint-import-csv",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "webhook",
+                "clint-import-csv"
+              ]
+            },
+            "description": "Envia payload sem origin_name para validar tratamento de erro."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Retorna erro HTTP', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([400, 404, 422, 500]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2 - WF B (Webhook Clint Won)",
+      "item": [
+        {
+          "name": "WF B - Success",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contact_id\": \"ct_{{deal_suffix}}\",\n  \"deal_id\": \"dl_{{deal_suffix}}\",\n  \"product_name\": \"{{product_name}}\",\n  \"product_value\": {{product_value}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/clint-won",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "webhook",
+                "clint-won"
+              ]
+            },
+            "description": "Valida fluxo bootstrap do webhook de deal ganho."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('deal_suffix', Date.now().toString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.test('Status bootstrap_ready', function () {",
+                  "  pm.expect(json.status).to.eql('bootstrap_ready');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "WF B - Validation Error (Missing deal_id)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contact_id\": \"ct_only\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/clint-won",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "webhook",
+                "clint-won"
+              ]
+            },
+            "description": "Valida regra que exige contact_id e deal_id."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Retorna erro HTTP', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([400, 404, 422, 500]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3 - Admin n8n API",
+      "item": [
+        {
+          "name": "List Workflows",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-N8N-API-KEY",
+                "value": "{{n8n_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{n8n_api_base_url}}/workflows?limit=50",
+              "host": [
+                "{{n8n_api_base_url}}"
+              ],
+              "path": [
+                "workflows"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Confere workflows e status active."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.test('Tem lista de workflows', function () {",
+                  "  pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Activate WF A",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-N8N-API-KEY",
+                "value": "{{n8n_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{n8n_api_base_url}}/workflows/{{wf_a_id}}/activate",
+              "host": [
+                "{{n8n_api_base_url}}"
+              ],
+              "path": [
+                "workflows",
+                "{{wf_a_id}}",
+                "activate"
+              ]
+            },
+            "description": "Ativa o workflow A por API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test('WF A ativo', function () {",
+                  "  pm.expect(json.active).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Activate WF B",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-N8N-API-KEY",
+                "value": "{{n8n_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{n8n_api_base_url}}/workflows/{{wf_b_id}}/activate",
+              "host": [
+                "{{n8n_api_base_url}}"
+              ],
+              "path": [
+                "workflows",
+                "{{wf_b_id}}",
+                "activate"
+              ]
+            },
+            "description": "Ativa o workflow B por API."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test('WF B ativo', function () {",
+                  "  pm.expect(json.active).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [],
+  "variable": []
+}

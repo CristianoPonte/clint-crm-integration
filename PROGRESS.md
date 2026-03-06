@@ -12,6 +12,26 @@
 
 ## Notas Técnicas
 
+### Homologacao em producao (Concluida - 2026-03-06)
+- Dominio oficial consolidado para operacao externa:
+  - `https://sisifo.metodovde.com.br`
+- Endpoint de producao validado para Workflow A:
+  - `POST /webhook/clint-import-csv`
+  - teste real com 1 linha retornou `HTTP 200` com `status=success`, `sucessos=1`, `erros=0`.
+- Endpoint de producao validado para Workflow B:
+  - `POST /webhook/clint-won`
+  - retorno `HTTP 200` com `status=bootstrap_ready`.
+- Correcoes aplicadas para registrar webhooks em producao:
+  - adicao de `webhookId` nos nodes de trigger de WF A e WF B.
+- Correcoes aplicadas para runtime do Code node:
+  - removido uso de `fetch` no WF A (na instancia atual `fetch` nao existe no sandbox);
+  - substituido por `this.helpers.httpRequest` no node `Process Import Clint`;
+  - removido fallback para env vars no Code node (acesso bloqueado no runtime desta instancia).
+- Pacote inicial de Postman criado para operacao:
+  - `postman/Clint_n8n_Webhooks.postman_collection.json`
+  - `postman/Clint_n8n.postman_environment.json`
+  - `postman/README.md`
+
 ### Reorganizacao estrutural (Concluida - 2026-03-05)
 - Projeto reorganizado para modelo **n8n-first** com separacao clara entre:
   - workflows: `n8n/workflows/<workflow>/`
@@ -78,7 +98,7 @@
 - Implementado `services/clint_service.py` com funções isoladas.
 - Configurada a base URL e headers lendo `CLINT_API_TOKEN` e usando `requests`.
 - `get_base_stage_id`: Nova função que fecta as origens e retorna dinamicamente o ID do estágio do tipo "BASE" para a origem selecionada.
-- `upsert_contact`: Adicionada lógica de extração do telefone ignorando caracteres não-numéricos e separando DDI (+55). Mapeamento dos campos null/empty fields filtrados das requisições. 
+- `upsert_contact`: Adicionada lógica de extração do telefone ignorando caracteres não-numéricos e separando DDI (+55). Mapeamento dos campos null/empty fields filtrados das requisições.
 - **Nova Lógica de Upsert:** Agora realiza busca prévia por E-mail e, secundariamente, por Telefone antes de decidir por criar ou atualizar o contato.
 - `add_tag_to_contact`: Endpoint configurado enviando tag em formato array.
 - `create_deal`: Implementado com requisições exigindo `origin_id`, garantindo que não se envie card dono.
@@ -94,7 +114,7 @@
 - Criado o arquivo `api_mappings.md` para persistir dados valiosos para as Tasks 2 e 3 (incluindo mapeamento dos IDs de Custom Fields para entidades Deal e Contact, IDs das Origens criadas e IDs de seus Stages atrelados).
 - Foi descoberto que a Clint lida com as Origens e Pipelines juntos: um `GET /origins` retorna as origens e embute os arrays de seus stages.
 - O endpoint correto da documentação para account fields é `/account/fields` e não `/account-fields` como estava na wiki oficial.
-- Payload de inserção de contatos foi testado e aceito com sucesso (Status 201).  
+- Payload de inserção de contatos foi testado e aceito com sucesso (Status 201).
 - Para lidar com *Upsert* (leads já existentes): detectado que o erro retornado pelo conflito de email é um `400 Bad Request` com a string `"Contact email already exists"`. Além disso, a atualização do lead ocorre com sucesso via `POST /contacts/{id}` com formato body tradicional JSON.
 - O envio de tags ( `POST /contacts/{id}/tags` ) requer obrigatoriamente um **array de strings** (ex: `["minha-tag"]`) no body da requisição (se não fizer isso, retorna erro 400).
 - Todos os IDs e nomes necessários já estão devidamente registrados em `api_mappings.md`.

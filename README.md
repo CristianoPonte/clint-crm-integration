@@ -29,3 +29,11 @@ Projeto reorganizado para operar com foco em n8n, mantendo o legado Python arqui
 - `PRD.md`
 - `PROGRESS.md`
 
+## Operacao inicial recomendada
+
+- Documentacao operacional n8n: `n8n/README.md`
+- Acesso API n8n: `docs/access/API_access.md`
+- Pacote Postman para validacoes rapidas:
+  - `postman/Clint_n8n_Webhooks.postman_collection.json`
+  - `postman/Clint_n8n.postman_environment.json`
+  - `postman/README.md`

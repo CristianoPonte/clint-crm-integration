@@ -3,7 +3,7 @@
 ## Base URL
 
 ```bash
-http://54.232.226.241:5678/api/v1
+https://sisifo.metodovde.com.br/api/v1
 ```
 
 ## Token de API
@@ -11,27 +11,20 @@ http://54.232.226.241:5678/api/v1
 Use este header em todas as requisições:
 
 ```bash
-X-N8N-API-KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNDFkN2YyYi1jNDNhLTQyNWYtOGZjOS0xMzc4MGY0MzY0ODkiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiZmI5MDA0YWQtZGI1MS00ZjJjLWIwNTUtZGM0NGJkZDQ3MDJiIiwiaWF0IjoxNzcyNzM2Nzg4LCJleHAiOjE3NzUyNzE2MDB9.KlbvupAVPgHU4GRrA5DT6chxc4aCmYI6In6rBjsX_vY
-```
-
-## Teste rápido
-
-```bash
-curl http://54.232.226.241:5678/api/v1/users \
-  --header 'X-N8N-API-KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNDFkN2YyYi1jNDNhLTQyNWYtOGZjOS0xMzc4MGY0MzY0ODkiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiZmI5MDA0YWQtZGI1MS00ZjJjLWIwNTUtZGM0NGJkZDQ3MDJiIiwiaWF0IjoxNzcyNzM2Nzg4LCJleHAiOjE3NzUyNzE2MDB9.KlbvupAVPgHU4GRrA5DT6chxc4aCmYI6In6rBjsX_vY'
+X-N8N-API-KEY: SEU_TOKEN
 ```
 
 ## Uso com variável de ambiente (recomendado)
 
 ```bash
-export N8N_BASE_URL='http://54.232.226.241:5678/api/v1'
-export N8N_API_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxNDFkN2YyYi1jNDNhLTQyNWYtOGZjOS0xMzc4MGY0MzY0ODkiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiZmI5MDA0YWQtZGI1MS00ZjJjLWIwNTUtZGM0NGJkZDQ3MDJiIiwiaWF0IjoxNzcyNzM2Nzg4LCJleHAiOjE3NzUyNzE2MDB9.KlbvupAVPgHU4GRrA5DT6chxc4aCmYI6In6rBjsX_vY'
+export N8N_BASE_URL='https://sisifo.metodovde.com.br/api/v1'
+export N8N_API_KEY='SEU_TOKEN'
 ```
 
-Exemplo de listagem:
+## Teste rápido
 
 ```bash
-curl "$N8N_BASE_URL/workflows" \
+curl "$N8N_BASE_URL/users" \
   --header "X-N8N-API-KEY: $N8N_API_KEY"
 ```
 
@@ -59,7 +52,7 @@ curl -X POST "$N8N_BASE_URL/workflows" \
   }'
 ```
 
-## Atualizar workflow (PATCH)
+## Atualizar workflow (PATCH/PUT)
 
 Substitua `WORKFLOW_ID`:
 
@@ -72,9 +65,23 @@ curl -X PATCH "$N8N_BASE_URL/workflows/WORKFLOW_ID" \
   }'
 ```
 
-## Deletar workflow (DELETE)
+Se o `PATCH` retornar `405`, usar fallback `PUT`:
 
-Substitua `WORKFLOW_ID`:
+```bash
+curl -X PUT "$N8N_BASE_URL/workflows/WORKFLOW_ID" \
+  --header "X-N8N-API-KEY: $N8N_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data @workflow.json
+```
+
+## Ativar workflow
+
+```bash
+curl -X POST "$N8N_BASE_URL/workflows/WORKFLOW_ID/activate" \
+  --header "X-N8N-API-KEY: $N8N_API_KEY"
+```
+
+## Deletar workflow (DELETE)
 
 ```bash
 curl -X DELETE "$N8N_BASE_URL/workflows/WORKFLOW_ID" \
@@ -83,5 +90,6 @@ curl -X DELETE "$N8N_BASE_URL/workflows/WORKFLOW_ID" \
 
 ## Observações
 
-- O endpoint `/projects` retornou `403 Forbidden` por limitação de licença.
-- Os demais endpoints testados responderam `200 OK`.
+- O endpoint `/projects` pode retornar `403 Forbidden` por limitação de licença.
+- Para webhooks de producao funcionarem, o node Webhook deve ter `webhookId` persistido no JSON.
+- Nao depender de `active` no body de create/update; ativar por endpoint dedicado.

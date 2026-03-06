@@ -2,206 +2,116 @@
 
 ## 1) Contexto e objetivo
 
-Este documento consolida tudo o que foi definido e executado sobre a migracao do integrador CSV -> Clint para n8n.
+Este documento consolida o estado real da migracao CSV -> Clint para n8n apos homologacao em producao.
 
 Objetivo principal:
-- Tirar a dependencia do backend FastAPI para a operacao de importacao.
-- Centralizar automacao, rastreabilidade e manutencao dentro do n8n.
-- Manter as regras de negocio existentes (upsert, tag, deal, stage BASE, relatorio).
+- reduzir dependencia operacional do backend FastAPI legado;
+- centralizar automacao e rastreabilidade no n8n;
+- preservar regras de negocio de importacao (upsert, tag, deal em stage BASE, relatorio final).
 
 ---
 
-## 2) Decisoes tecnicas tomadas
+## 2) Estado atual validado (2026-03-06)
 
-- Stack da automacao: **n8n + JavaScript (Code node)**.
-- Motivo: menor acoplamento operacional e manutencao mais rapida no proprio workflow.
-- Python continua util como referencia de regra de negocio (legacy), mas o runtime principal agora e n8n.
+- Dominio oficial:
+  - `https://sisifo.metodovde.com.br`
+- API n8n:
+  - `https://sisifo.metodovde.com.br/api/v1`
+- Workflows principais:
+  - `WF A - Importacao CSV Clint (Fase 1)` (`id=PZVcheWyos7ewnp0`) ativo e homologado.
+  - `WF B - Webhook Clint Won (Bootstrap)` (`id=LU1JwbgCgIpJLCnM`) ativo e respondendo.
 
----
-
-## 3) O que foi implementado de fato
-
-## 3.1 Estrutura criada no repositorio
-
-- `n8n/workflows/workflow_a_importacao_bootstrap.json`
-- `n8n/workflows/workflow_b_clint_won_bootstrap.json`
-- `scripts/n8n_deploy.py`
-- `n8n/README.md`
-- Atualizacao de `PROGRESS.md`
-
-## 3.2 Deploy por API n8n
-
-Foi criado um script de deploy versionado com capacidades de:
-- baseline check da API (`users`, `workflows`, `credentials`, `tags`);
-- create/update de workflows por nome;
-- fallback de compatibilidade de update (`PATCH` -> `PUT`) por comportamento da instancia.
-
-Observacao importante aprendida:
-- Em algumas chamadas de workflow, `PATCH` retornou `405`.
-- A solucao foi implementar fallback para `PUT`.
-
-## 3.3 Workflows publicados
-
-Estado observado na instancia:
-- `PZVcheWyos7ewnp0` | active=`true` | `WF A - Importacao CSV Clint (Fase 1)`
-- `LU1JwbgCgIpJLCnM` | active=`false` | `WF B - Webhook Clint Won (Bootstrap)`
-- `YUU63AqCfvXmQ7pe` | active=`false` | `WF A - Importacao CSV Clint (Bootstrap)` (versao antiga)
+Resultados de validacao:
+- WF A (`POST /webhook/clint-import-csv`):
+  - teste real com 1 linha retornou `HTTP 200`;
+  - payload de retorno com `status=success`, `sucessos=1`, `erros=0`.
+- WF B (`POST /webhook/clint-won`):
+  - retorno `HTTP 200` com `status=bootstrap_ready`.
 
 ---
 
-## 4) Fase 1 - Workflow A (status: concluida em codigo/deploy)
+## 3) Incidentes encontrados e correcoes aplicadas
 
-Nome publicado:
-- `WF A - Importacao CSV Clint (Fase 1)`
+1. Webhook de producao retornando `not registered` mesmo com workflow ativo
+- causa: node Webhook sem `webhookId` persistido no JSON versionado.
+- correcao: adicao de `webhookId` nos workflows A e B + ciclo deactivate/activate.
 
-Fluxo implementado:
-1. Webhook recebe payload JSON.
-2. Valida campos obrigatorios:
-   - `origin_name`
-   - `product_name`
-   - `product_value`
-   - `list_tag_name`
-3. Aceita entrada em dois formatos:
-   - `rows` (array de objetos), ou
-   - `csv_text` (CSV string, delimitador `,` ou `;`).
-4. Resolve origem Clint por nome (case-insensitive).
-5. Resolve stage da origem (prioridade `type == BASE`).
-6. Para cada linha:
-   - normaliza headers e valores;
-   - aplica mapeamento para `contact_fields` e `deal_fields`;
-   - executa upsert de contato por e-mail com fallback por telefone;
-   - aplica tag no contato;
-   - cria deal com campos adicionais (`lista_origem`, `data_importacao`, `produto`, etc.).
-7. Retorna relatorio consolidado:
-   - `sucessos`
-   - `erros`
-   - `detalhes_falhas`
+2. Erro `process is not defined` no Code node do WF A
+- causa: tentativa de acesso a env var via `process.env` no runtime do Code node.
+- correcao: remover dependencia de `process.env` e exigir `clint_api_token` no payload.
 
-Regras de negocio preservadas do legado:
-- deduplicacao por e-mail/telefone;
-- envio de tags em array;
-- criacao em stage BASE;
-- ignorar campos vazios nos payloads.
+3. Erro `fetch is not defined` no Code node do WF A
+- causa: runtime da instancia nao expoe `fetch` no sandbox do Code node.
+- correcao: substituir chamadas HTTP por `this.helpers.httpRequest`.
+
+4. `PATCH /workflows/{id}` com `405`
+- causa: comportamento da instancia/API.
+- correcao: manter fallback de update para `PUT` no script de deploy.
+
+5. Ativacao de workflow
+- observacao: nao depender de `active` no body de create/update.
+- pratica adotada: usar `POST /workflows/{id}/activate`.
 
 ---
 
-## 5) Workflow B (status atual)
+## 4) Workflows e responsabilidades
 
-Nome:
-- `WF B - Webhook Clint Won (Bootstrap)`
+## 4.1 Workflow A - Importacao CSV Clint (Fase 1)
 
-Estado:
-- bootstrap pronto (valida payload basico e responde padrao);
-- ainda pendente de Fase 2 (Google Sheets + Slack).
+Entrada:
+- `origin_name`, `product_name`, `product_value`, `list_tag_name`, `clint_api_token`;
+- `rows` (array) ou `csv_text`.
 
----
+Processamento:
+- validacao de obrigatorios;
+- parse CSV opcional;
+- resolve origem por nome (case-insensitive) e stage `BASE`;
+- upsert de contato por e-mail com fallback telefone;
+- aplica tag;
+- cria deal;
+- retorna relatorio de sucesso/falha por linha.
 
-## 6) Aprendizados e incidentes tecnicos
+Saida:
+- `status`, `sucessos`, `erros`, `detalhes_falhas`, ids de origem/stage.
 
-1. Campo `active` no body de create/update de workflow:
-- a API retornou erro de campo somente leitura em certas chamadas.
-- abordagem segura: nao depender de `active` no body de create/update.
-- ativacao feita por endpoint de ativacao.
+## 4.2 Workflow B - Webhook Clint Won (Bootstrap)
 
-2. Update de workflow:
-- `PATCH` nao foi aceito na instancia para alguns casos.
-- fallback para `PUT` resolveu.
+Entrada:
+- `contact_id`, `deal_id` (obrigatorios)
+- `product_name`, `product_value` (opcionais)
 
-3. Webhook URL de producao aparecendo como localhost:
-- no editor foi exibido: `http://localhost:5678/webhook/clint-import-csv`.
-- isso indica configuracao de URL publica do n8n nao ajustada para ambiente externo.
-- consequencia: teste externo pode falhar/ficar inconsistente.
+Saida:
+- `status=bootstrap_ready` + eco dos campos recebidos.
 
-4. Authentication do webhook em `none`:
-- endpoint fica publico sem protecao.
-- risco operacional para um fluxo que cria/atualiza contato e deal.
-
----
-
-## 7) Status de validacao
-
-Validado:
-- acesso API n8n;
-- deploy/update de workflows;
-- ativacao do workflow A por API.
-
-Pendente:
-- validacao HTTP externa ponta a ponta no endpoint de webhook de producao, dependente de configuracao de URL publica correta da instancia.
+Observacao:
+- fase atual ainda bootstrap; integracoes Sheets/Slack seguem pendentes.
 
 ---
 
-## 8) Configuracoes iniciais recomendadas
+## 5) Operacao e teste rapido
 
-## 8.1 Variaveis para operar via API (local/script)
+Variaveis para script de deploy:
+- `N8N_BASE_URL=https://sisifo.metodovde.com.br/api/v1`
+- `N8N_API_KEY=<token>`
 
-Definidas conforme `API_access.md`:
-- `N8N_BASE_URL`
-- `N8N_API_KEY`
+Comandos:
+- baseline:
+  - `python3 n8n/reusable/deployment/n8n_deploy.py --check-only`
+- deploy:
+  - `python3 n8n/reusable/deployment/n8n_deploy.py n8n/workflows/wf-a-importacao-csv-clint/workflow.fase1.json n8n/workflows/wf-b-webhook-clint-won/workflow.bootstrap.json`
 
-Uso:
-- `python3 scripts/n8n_deploy.py --check-only`
-- `python3 scripts/n8n_deploy.py n8n/workflows/workflow_a_importacao_bootstrap.json n8n/workflows/workflow_b_clint_won_bootstrap.json`
-
-## 8.2 Configuracoes de infraestrutura da instancia n8n (importante)
-
-Para corrigir URL de producao do webhook (evitar localhost), ajustar no servidor/container do n8n:
-- `WEBHOOK_URL` (preferencial)
-- e, se necessario: `N8N_HOST`, `N8N_PROTOCOL`, `N8N_PORT`, `N8N_PATH`
-
-Depois reiniciar o n8n.
-
-## 8.3 Seguranca do webhook
-
-Recomendado imediatamente:
-- deixar de usar `Authentication: none` para esse endpoint;
-- exigir token/header de autenticacao no webhook;
-- usar HTTPS;
-- opcionalmente restringir origem por IP/proxy/firewall.
+Postman:
+- pacote inicial pronto em `postman/`:
+  - `Clint_n8n_Webhooks.postman_collection.json`
+  - `Clint_n8n.postman_environment.json`
+  - `README.md`
 
 ---
 
-## 9) Payload esperado no Workflow A
+## 6) Pendencias atuais
 
-Exemplo minimo (JSON):
-
-```json
-{
-  "origin_name": "NOME DA ORIGEM",
-  "product_name": "NOME DO PRODUTO",
-  "product_value": 197.0,
-  "list_tag_name": "tag-da-importacao",
-  "clint_api_token": "TOKEN_CLINT",
-  "rows": [
-    {
-      "Nome": "Fulano",
-      "Email": "fulano@email.com",
-      "Telefone": "11999999999",
-      "utm source": "meta",
-      "utm campaign": "campanha-x"
-    }
-  ]
-}
-```
-
-Alternativa de entrada:
-- `csv_text` no lugar de `rows`.
-
----
-
-## 10) Proximos passos recomendados (curto prazo)
-
-1. Ajustar URL publica de webhook na infraestrutura n8n.
-2. Proteger webhook (auth/token).
-3. Rodar teste externo ponta a ponta com payload de amostra.
-4. Avancar para Fase 2:
-   - completar Workflow B com gravacao em Google Sheets;
-   - notificacao Slack;
-   - validacao com payload real/simulado.
-
----
-
-## 11) Resumo executivo
-
-- A base da migracao foi implantada com sucesso.
-- Fase 1 do Workflow A esta pronta em codigo e publicada.
-- Principal bloqueio atual nao e regra de negocio, e sim configuracao de exposicao/autenticacao do webhook em producao.
+- TASK 4 (Google Sheets + Slack no fluxo de venda ganha) ainda nao concluida.
+- Hardening recomendado:
+  - autenticar webhooks (`Authentication: none` nao recomendado em producao);
+  - politicas de retry e idempotencia;
+  - observabilidade (alerta para execucoes em erro).
