@@ -16,10 +16,12 @@
 - Workflow Fase 1 publicado e ativo:
   - `WF C - Manychat Intake Clint (Fase 1)` (`id=IDbkLRon0vF0r6ZM`)
   - endpoints ativos: `POST /webhook/manychat-intake-test` e `POST /webhook/manychat-intake`
+- Ajuste operacional aplicado no ambiente local:
+  - `.env` atualizado para `N8N_BASE_URL=https://sisifo.metodovde.com.br/api/v1` (evita falha de deploy por retorno HTML fora da rota da API).
 - Workflow bootstrap do WF C desativado:
   - `WF C - Manychat Intake Clint (Bootstrap)` (`id=bnjM2OPkMHkrcoZU`)
 - Integracao ponta a ponta validada:
-  - upsert por email com fallback por telefone;
+  - upsert por telefone/whatsapp com fallback por email;
   - aplicacao da tag `cj-ppt-webinar`;
   - criacao de deal com `origin_id` fixo e `stage BASE` dinamico.
 - Parsing adaptado ao payload real do Manychat:
@@ -29,6 +31,27 @@
 - Observabilidade ajustada:
   - o webhook responde com `http_status` correto;
   - erros de negocio agora marcam a execucao como `error` no n8n (node `Fail Execution On Error Status`).
+- Fase 2 - Etapa 4 concluida:
+  - helpers reutilizaveis extraidos e padronizados no core (normalizacao, limpeza, telefone, aliases e builder de payload Clint);
+  - aliases centralizados em `INPUT_ALIASES`, reduzindo manutencao distribuida.
+- Fase 2 - Etapa 5 concluida:
+  - mapeamento de aliases evoluido para `GLOBAL_INPUT_ALIASES` + `LIST_INPUT_ALIASES`;
+  - merge de aliases por `list_key` com deduplicacao, mantendo fallback de lista.
+- Fase 2 - Etapa 6 concluida:
+  - contrato de erro padronizado com `config_version` e bloco `audit` nas respostas de validacao/integracao;
+  - resposta de sucesso enriquecida com metadados de auditoria tecnica (`received_at`, `processed_at`, `duration_ms`);
+  - sanitizacao de dados sensiveis em erros (`token`, `email`, `telefone/whatsapp`) para reduzir exposicao em logs.
+- Testes executados em 2026-03-06:
+  - validacoes locais do code node (4 casos de normalizacao/aliases + compilacao de sintaxe dos 3 code nodes);
+  - smoke endpoint `manychat-intake-test` (validacao 400 + sucesso create/update por email/telefone);
+  - cenario de UTM parcial validado sem quebra e cenario de chamadas duplicadas seguidas validado (primeira `created`, segunda `updated`).
+  - validacao local da etapa 6: compilacao sintatica dos code nodes + checks de contrato (erro com `config_version`/`audit` e mascaramento de token/email/telefone).
+- Deploy executado em 2026-03-06:
+  - workflow `WF C - Manychat Intake Clint (Fase 1)` atualizado via API (`id=IDbkLRon0vF0r6ZM`).
+  - etapa 6 publicada no mesmo workflow (`id=IDbkLRon0vF0r6ZM`).
+- Smoke tests da etapa 6 (endpoint `manychat-intake-test`):
+  - `execution_id=37`: `validation_error` com `config_version`, `audit` e token mascarado;
+  - `execution_id=38`: `integration_error` (`MISSING_CLINT_TOKEN`) com `normalized_payload` sanitizado e `duration_ms`.
 
 ### Homologacao em producao (Concluida - 2026-03-06)
 - Dominio oficial consolidado para operacao externa:
