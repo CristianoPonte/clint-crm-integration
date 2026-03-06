@@ -7,6 +7,7 @@ Receber leads do Manychat via webhook, normalizar payload real, fazer upsert de 
 - `workflow.bootstrap.json`: versão bootstrap (legado da fase inicial).
 - `workflow.fase1.json`: versão atual com integração ponta a ponta.
 - `plano_implementacao.md`: plano e histórico técnico.
+- `plano_fase3.md`: desenho e plano de execução da fase 3 (modularização reutilizável por lista).
 
 ## Endpoints
 - Teste: `POST https://sisifo.metodovde.com.br/webhook/manychat-intake-test`
@@ -50,6 +51,23 @@ Receber leads do Manychat via webhook, normalizar payload real, fazer upsert de 
 ## Status atual (2026-03-06)
 - Workflow ativo: `WF C - Manychat Intake Clint (Fase 1)` (`id=IDbkLRon0vF0r6ZM`).
 - Bootstrap WF C desativado: `id=bnjM2OPkMHkrcoZU`.
+- Fase 3 concluida em `workflow.fase1.json` com novos nodes:
+  - `Prepare Runtime Context`
+  - `Config Catalog`
+  - `Resolve Config`
+- Etapa 3.4 concluida em 2026-03-06:
+  - `Normalize + Validate Input` agora consome apenas `runtime_context + resolved_aliases` da camada de configuracao.
+  - removidos blocos hardcoded de lista/aliases (`LIST_CONFIGS`, `GLOBAL_INPUT_ALIASES`, `LIST_INPUT_ALIASES`) do node de normalizacao.
+- Etapa 3.5 concluida em 2026-03-06:
+  - novo node `Build Clint Payloads` adicionado entre `Normalize + Validate Input` e `Integrate Clint (Upsert + Tag + Deal)`.
+  - construcao de `contactPayload` e `dealPayloadBase` movida para esse node dedicado.
+- Etapa 3.6 concluida em 2026-03-06:
+  - `Integrate Clint (Upsert + Tag + Deal)` passou a consumir `resolved_config` como fonte principal.
+  - retry e deduplicacao passaram a ser orientados por configuracao (`retry.max_attempts`, `retry.base_delay_ms`, `dedupe_strategy`).
+- Etapa 3.7 concluida em 2026-03-06:
+  - regressao executada com smoke de sucesso, validacao sem identidade e caso `CONFIG_ERROR` de catalogo invalido;
+  - onboarding da lista `test_lista_nova` realizado apenas no node `Config Catalog` (sem alterar algoritmo dos demais nodes);
+  - deploy publicado e reativado no workflow de producao (`id=IDbkLRon0vF0r6ZM`).
 - Execuções de validação:
   - `id=17`: sucesso (contato criado + deal criado).
   - `id=18`: sucesso (contato atualizado + novo deal).
@@ -57,6 +75,10 @@ Receber leads do Manychat via webhook, normalizar payload real, fazer upsert de 
   - `id=23`: sucesso após retentativa.
   - `id=37`: validação de contrato etapa 6 (`validation_error` com `config_version` + `audit` + payload sanitizado).
   - `id=38`: validação de contrato etapa 6 (`integration_error` com `normalized_payload` mascarado e `duration_ms`).
+  - `id=41`: sucesso pós-deploy da fase 3.7 no endpoint de teste (`manychat-intake-test`).
+  - `id=42`: validação sem identidade pós-deploy (execução marcada como `error` no n8n por desenho).
+  - `id=43`: sucesso da nova lista `test_lista_nova` no endpoint de teste.
+  - `id=44`: sucesso no endpoint de produção (`manychat-intake`) após deploy da fase 3.7.
 
 ## Fase 2 - Andamento rápido
 - Etapa 1 concluída em 2026-03-06.
@@ -85,4 +107,5 @@ Receber leads do Manychat via webhook, normalizar payload real, fazer upsert de 
 - Deploy: versão atual publicada no n8n em 2026-03-06 (`id=IDbkLRon0vF0r6ZM`).
 - Deploy da etapa 5: workflow atualizado via API no dia 2026-03-06 (`id=IDbkLRon0vF0r6ZM`).
 - Deploy da etapa 6: workflow atualizado via API no dia 2026-03-06 (`id=IDbkLRon0vF0r6ZM`).
+- Deploy da etapa 3.7: workflow atualizado via API no dia 2026-03-06 (`id=IDbkLRon0vF0r6ZM`) com `config_version=wf-c-manychat-intake-clint@fase3-etapa37-2026-03-06`.
 - Aprendizado operacional: para deploy via API, usar `N8N_BASE_URL` com `/api/v1`.
