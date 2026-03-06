@@ -1,0 +1,78 @@
+{
+  "name": "WF C - Manychat Intake Clint (Bootstrap)",
+  "nodes": [
+    {
+      "id": "webhook-manychat-intake-test",
+      "name": "Webhook Manychat Intake Test",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "8c39af8d-1075-4bdf-851d-4d78bda3cfa1",
+      "position": [
+        280,
+        280
+      ],
+      "parameters": {
+        "path": "manychat-intake-test",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-parse-manychat-bootstrap",
+      "name": "Parse Manychat Bootstrap",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        280
+      ],
+      "parameters": {
+        "jsCode": "const raw = $json.body ?? $json;\nconst payload = raw.data ?? raw;\n\nconst FIXED_CONFIG = {\n  origin_name: 'Perpétuo Webinário',\n  origin_id: 'bd1bd846-0c87-4acb-b221-d7f8d2089e68',\n  tag_name: 'cj-ppt-webinar',\n  lista_origem: 'cj-ppt-webinar',\n  produto: 'VDE Carreiras Jurídicas Ciclo Prioritário',\n  value: 2557\n};\n\nfunction normalizeKey(value) {\n  return String(value || '')\n    .trim()\n    .toLowerCase()\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .replace(/[?!:;,.()\\[\\]'\"]/g, '')\n    .replace(/[-_/]/g, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\nfunction normalizeValue(value) {\n  if (value === undefined || value === null) return '';\n  return String(value).trim();\n}\n\nfunction digitsOnly(value) {\n  return String(value || '').replace(/\\D/g, '');\n}\n\nconst containers = [payload, payload.fields || {}, payload.custom_fields || {}, payload.contact || {}];\n\nfunction pickValue(aliases) {\n  for (const alias of aliases) {\n    const wanted = normalizeKey(alias);\n    for (const container of containers) {\n      for (const [k, v] of Object.entries(container || {})) {\n        if (normalizeKey(k) === wanted) {\n          const cleaned = normalizeValue(v);\n          if (cleaned) return cleaned;\n        }\n      }\n    }\n  }\n  return '';\n}\n\nconst nome = pickValue(['nome', 'name', 'full_name', 'first_name']);\nconst email = pickValue(['email', 'e-mail', 'mail']);\nconst whatsappRaw = pickValue(['whatsapp', 'phone', 'telefone', 'celular']);\nconst carreiraPretendida = pickValue(['carreira_pretendida', 'carreira pretendida']);\n\nconst utmSource = pickValue(['utm_source', 'utm source']);\nconst utmMedium = pickValue(['utm_medium', 'utm medium']);\nconst utmCampaign = pickValue(['utm_campaign', 'utm campaign']);\nconst utmTerm = pickValue(['utm_term', 'utm term']);\nconst utmContent = pickValue(['utm_content', 'utm content']);\n\nconst whatsappDigits = digitsOnly(whatsappRaw);\nconst isValid = Boolean(email || whatsappDigits);\n\nreturn [\n  {\n    json: {\n      status: isValid ? 'bootstrap_ready' : 'validation_error',\n      message: isValid\n        ? 'Webhook Manychat recebido e normalizado com sucesso (modo bootstrap).'\n        : 'Payload invalido: informe ao menos email ou whatsapp.',\n      received_at: new Date().toISOString(),\n      is_valid: isValid,\n      endpoint: 'manychat-intake-test',\n      fixed_config: FIXED_CONFIG,\n      normalized_payload: {\n        nome,\n        email,\n        whatsapp: whatsappRaw,\n        whatsapp_digits: whatsappDigits,\n        carreira_pretendida: carreiraPretendida,\n        utm_source: utmSource,\n        utm_medium: utmMedium,\n        utm_campaign: utmCampaign,\n        utm_term: utmTerm,\n        utm_content: utmContent\n      },\n      raw_payload: payload\n    }\n  }\n];"
+      }
+    },
+    {
+      "id": "respond-manychat-bootstrap",
+      "name": "Respond Manychat Bootstrap",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        920,
+        280
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Manychat Intake Test": {
+      "main": [
+        [
+          {
+            "node": "Parse Manychat Bootstrap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Manychat Bootstrap": {
+      "main": [
+        [
+          {
+            "node": "Respond Manychat Bootstrap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "active": false
+}

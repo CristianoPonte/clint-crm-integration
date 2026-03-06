@@ -12,6 +12,24 @@
 
 ## Notas Técnicas
 
+### WF C - Manychat Intake Clint (Concluida - 2026-03-06)
+- Workflow Fase 1 publicado e ativo:
+  - `WF C - Manychat Intake Clint (Fase 1)` (`id=IDbkLRon0vF0r6ZM`)
+  - endpoints ativos: `POST /webhook/manychat-intake-test` e `POST /webhook/manychat-intake`
+- Workflow bootstrap do WF C desativado:
+  - `WF C - Manychat Intake Clint (Bootstrap)` (`id=bnjM2OPkMHkrcoZU`)
+- Integracao ponta a ponta validada:
+  - upsert por email com fallback por telefone;
+  - aplicacao da tag `cj-ppt-webinar`;
+  - criacao de deal com `origin_id` fixo e `stage BASE` dinamico.
+- Parsing adaptado ao payload real do Manychat:
+  - telefone em `whatsapp_phone`;
+  - carreira em `custom_fields.Carreira_Concursos`;
+  - aliases adicionais para UTMs.
+- Observabilidade ajustada:
+  - o webhook responde com `http_status` correto;
+  - erros de negocio agora marcam a execucao como `error` no n8n (node `Fail Execution On Error Status`).
+
 ### Homologacao em producao (Concluida - 2026-03-06)
 - Dominio oficial consolidado para operacao externa:
   - `https://sisifo.metodovde.com.br`

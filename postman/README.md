@@ -17,6 +17,21 @@ Arquivos para importar:
    - `1 - WF A (Importacao CSV) / WF A - Import 1 Row (Success)`
    - `2 - WF B (Webhook Clint Won) / WF B - Success`
    - `3 - Admin n8n API / List Workflows`
+   - `4 - Clint API / Clint - List Origins (All)`
+   - `5 - WF C (Manychat Intake) / WF C - Bootstrap Test`
+
+## Consulta de Origins (Clint)
+
+Para listar todas as origins da conta:
+
+1. Preencha `clint_api_token` no environment.
+2. Rode `4 - Clint API / Clint - List Origins (All)`.
+
+Para encontrar um origin ID por nome:
+
+1. Defina `origin_search_name` (exemplo: `Perpétuo Webinário`).
+2. Rode `4 - Clint API / Clint - Find Origin ID by Name`.
+3. O resultado sera salvo automaticamente em `origin_id_found`.
 
 ## Observacoes
 

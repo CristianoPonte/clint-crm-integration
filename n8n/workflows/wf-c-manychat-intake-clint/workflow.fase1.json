@@ -1,0 +1,154 @@
+{
+  "name": "WF C - Manychat Intake Clint (Fase 1)",
+  "nodes": [
+    {
+      "id": "webhook-manychat-intake-test",
+      "name": "Webhook Manychat Intake Test",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "fb2bbfb4-0ca3-4937-a99b-74b6633e416c",
+      "position": [
+        260,
+        200
+      ],
+      "parameters": {
+        "path": "manychat-intake-test",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "webhook-manychat-intake-prod",
+      "name": "Webhook Manychat Intake Prod",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "2672b960-233d-4eb6-b21e-d9fb953c9295",
+      "position": [
+        260,
+        420
+      ],
+      "parameters": {
+        "path": "manychat-intake",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "code-normalize-validate",
+      "name": "Normalize + Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        310
+      ],
+      "parameters": {
+        "jsCode": "const raw = $json.body ?? $json;\nconst payload = (raw && typeof raw === 'object') ? (raw.data ?? raw) : {};\nconst headers = $json.headers || {};\nconst executionId = (typeof $execution !== 'undefined' && $execution?.id) ? String($execution.id) : String(Date.now());\n\nconst FIXED_CONFIG = {\n  origin_name: 'Perpétuo Webinário',\n  origin_id: 'bd1bd846-0c87-4acb-b221-d7f8d2089e68',\n  tag_name: 'cj-ppt-webinar',\n  lista_origem: 'cj-ppt-webinar',\n  produto: 'VDE Carreiras Jurídicas Ciclo Prioritário',\n  value: 2557,\n  clint_base_url: 'https://api.clint.digital/v1'\n};\n\nfunction normalizeKey(value) {\n  return String(value || '')\n    .trim()\n    .toLowerCase()\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .replace(/[?!:;,.()\\[\\]'\"%]/g, '')\n    .replace(/[-_/]/g, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\nfunction normalizeValue(value) {\n  if (value === undefined || value === null) return '';\n\n  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {\n    return String(value).trim();\n  }\n\n  if (Array.isArray(value)) {\n    for (const item of value) {\n      const extracted = normalizeValue(item);\n      if (extracted) return extracted;\n    }\n    return '';\n  }\n\n  if (typeof value === 'object') {\n    const priorityKeys = ['value', 'text', 'label', 'name', 'phone', 'email'];\n    for (const key of priorityKeys) {\n      if (Object.prototype.hasOwnProperty.call(value, key)) {\n        const extracted = normalizeValue(value[key]);\n        if (extracted) return extracted;\n      }\n    }\n  }\n\n  return '';\n}\n\nfunction digitsOnly(value) {\n  return String(value || '').replace(/\\D/g, '');\n}\n\nfunction cleanObject(obj) {\n  return Object.fromEntries(\n    Object.entries(obj || {}).filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== '')\n  );\n}\n\nfunction buildPhonePayload(rawPhone) {\n  const phoneClean = digitsOnly(rawPhone);\n  if (!phoneClean) return { ddi: '', phone: '', whatsapp_digits: '' };\n\n  if (phoneClean.startsWith('55') && phoneClean.length > 11) {\n    return {\n      ddi: '+55',\n      phone: phoneClean.slice(2),\n      whatsapp_digits: phoneClean\n    };\n  }\n\n  if (phoneClean.length === 10 || phoneClean.length === 11) {\n    return {\n      ddi: '+55',\n      phone: phoneClean,\n      whatsapp_digits: phoneClean\n    };\n  }\n\n  return { ddi: '', phone: '', whatsapp_digits: phoneClean };\n}\n\nconst containers = [\n  payload,\n  payload.fields || {},\n  payload.custom_fields || {},\n  payload.customFields || {},\n  payload.contact || {},\n  payload.subscriber || {},\n  payload.variables || {}\n].filter((item) => item && typeof item === 'object' && !Array.isArray(item));\n\nfunction pickValue(aliases) {\n  const normalizedAliases = aliases.map((alias) => normalizeKey(alias));\n\n  for (const container of containers) {\n    for (const [k, v] of Object.entries(container || {})) {\n      const keyNorm = normalizeKey(k);\n      if (normalizedAliases.includes(keyNorm)) {\n        const cleaned = normalizeValue(v);\n        if (cleaned) return cleaned;\n      }\n    }\n  }\n\n  return '';\n}\n\nconst firstName = pickValue(['first_name', 'first name']);\nconst lastName = pickValue(['last_name', 'last name']);\nconst fullNameFallback = [firstName, lastName].filter(Boolean).join(' ').trim();\n\nconst nome = pickValue(['nome', 'name', 'full_name', 'full name', 'first_name']) || fullNameFallback;\nconst email = pickValue(['email', 'e-mail', 'mail', 'email_address', 'email address']).toLowerCase();\n\nconst whatsappRaw = pickValue([\n  'whatsapp',\n  'whatsapp_phone',\n  'whatsapp phone',\n  'phone',\n  'telefone',\n  'celular',\n  'auth_phone',\n  'auth phone'\n]);\n\nconst carreiraPretendida = pickValue([\n  'carreira_pretendida',\n  'carreira pretendida',\n  'carreira_concursos',\n  'carreira concursos'\n]);\n\nconst utmSource = pickValue(['utm_source', 'utm source', 'utmsource']);\nconst utmMedium = pickValue(['utm_medium', 'utm medium', 'utmmedium']);\nconst utmCampaign = pickValue(['utm_campaign', 'utm campaign', 'utmcampaign']);\nconst utmTerm = pickValue(['utm_term', 'utm term', 'utmterm']);\nconst utmContent = pickValue(['utm_content', 'utm content', 'utmcontent']);\n\nconst phonePayload = buildPhonePayload(whatsappRaw);\nconst hasContactIdentity = Boolean(email || phonePayload.phone);\n\nconst contactFields = cleanObject({\n  carreira_pretendida: carreiraPretendida\n});\n\nconst dealFields = cleanObject({\n  utm_source: utmSource,\n  utm_medium: utmMedium,\n  utm_campaign: utmCampaign,\n  utm_term: utmTerm,\n  utm_content: utmContent,\n  lista_origem: FIXED_CONFIG.lista_origem,\n  data_importacao: new Date().toISOString(),\n  produto: FIXED_CONFIG.produto\n});\n\nconst tokenHeader = headers['x-clint-api-token'] || headers['X-CLINT-API-TOKEN'] || headers['api-token'] || headers['API-TOKEN'] || '';\nconst tokenPayload = normalizeValue(payload.clint_api_token || payload.clintToken || '');\nconst tokenEnv = (typeof process !== 'undefined' && process?.env)\n  ? (process.env.CLINT_API_TOKEN || process.env.CLINT_TOKEN || process.env.API_TOKEN || '')\n  : '';\nconst tokenFallback = 'U2FsdGVkX18umuKr+lSkwZrMxbDqBLAg7RXuFZdMCH6kgaNhWuW4RY9uSRh0OYTa+xfvC7xTs8oj+mYwdDTSiQ==';\nconst clintApiToken = normalizeValue(tokenHeader || tokenPayload || tokenEnv || tokenFallback);\n\nif (!hasContactIdentity) {\n  return [\n    {\n      json: {\n        status: 'validation_error',\n        code: 'VALIDATION_ERROR',\n        message: 'Payload invalido: informe ao menos email ou whatsapp.',\n        step: 'validate_payload',\n        http_status: 400,\n        execution_id: executionId,\n        should_continue: false,\n        fixed_config: FIXED_CONFIG,\n        normalized_payload: {\n          nome,\n          email,\n          whatsapp: whatsappRaw,\n          whatsapp_digits: phonePayload.whatsapp_digits,\n          ddi: phonePayload.ddi,\n          phone: phonePayload.phone,\n          carreira_pretendida: carreiraPretendida,\n          utm_source: utmSource,\n          utm_medium: utmMedium,\n          utm_campaign: utmCampaign,\n          utm_term: utmTerm,\n          utm_content: utmContent\n        },\n        raw_payload: payload\n      }\n    }\n  ];\n}\n\nreturn [\n  {\n    json: {\n      status: 'validated',\n      code: 'OK',\n      message: 'Payload normalizado e validado.',\n      step: 'normalize_input',\n      http_status: 200,\n      should_continue: true,\n      execution_id: executionId,\n      fixed_config: FIXED_CONFIG,\n      integration_context: {\n        clint_api_token: clintApiToken,\n        clint_base_url: FIXED_CONFIG.clint_base_url\n      },\n      normalized_payload: {\n        nome,\n        email,\n        whatsapp: whatsappRaw,\n        whatsapp_digits: phonePayload.whatsapp_digits,\n        ddi: phonePayload.ddi,\n        phone: phonePayload.phone,\n        carreira_pretendida: carreiraPretendida,\n        utm_source: utmSource,\n        utm_medium: utmMedium,\n        utm_campaign: utmCampaign,\n        utm_term: utmTerm,\n        utm_content: utmContent\n      },\n      clint_payloads: {\n        contactPayload: cleanObject({\n          name: nome || (email ? email.split('@')[0] : `lead-${Date.now()}`),\n          email,\n          ddi: phonePayload.ddi,\n          phone: phonePayload.phone,\n          fields: contactFields\n        }),\n        dealPayloadBase: {\n          value: FIXED_CONFIG.value,\n          fields: dealFields\n        }\n      },\n      raw_payload: payload\n    }\n  }\n];\n"
+      }
+    },
+    {
+      "id": "code-integrate-clint",
+      "name": "Integrate Clint (Upsert + Tag + Deal)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        310
+      ],
+      "parameters": {
+        "jsCode": "const input = $json;\n\nif (!input.should_continue) {\n  return [{ json: input }];\n}\n\nfunction extractId(payload) {\n  return payload?.data?.id || payload?.id || null;\n}\n\nfunction cleanObject(obj) {\n  return Object.fromEntries(\n    Object.entries(obj || {}).filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== '')\n  );\n}\n\nfunction ensureFieldsObject(payload) {\n  const fields = cleanObject(payload.fields || {});\n  if (Object.keys(fields).length > 0) {\n    payload.fields = fields;\n  } else {\n    delete payload.fields;\n  }\n  return payload;\n}\n\nconst token = String(input.integration_context?.clint_api_token || '').trim();\nconst baseUrl = String(input.integration_context?.clint_base_url || 'https://api.clint.digital/v1').replace(/\\/$/, '');\nconst executionId = input.execution_id || `${Date.now()}`;\n\nif (!token) {\n  return [{\n    json: {\n      status: 'integration_error',\n      code: 'MISSING_CLINT_TOKEN',\n      message: 'Token da Clint ausente. Envie x-clint-api-token no header (homologacao) ou configure credencial no n8n.',\n      step: 'init_integration',\n      http_status: 500,\n      execution_id: executionId,\n      normalized_payload: input.normalized_payload\n    }\n  }];\n}\n\nconst httpRequest = this.helpers.httpRequest.bind(this.helpers);\n\nasync function apiRequest(step, method, path, body = undefined) {\n  const url = `${baseUrl}${path}`;\n  const maxAttempts = 3;\n\n  for (let attempt = 1; attempt <= maxAttempts; attempt++) {\n    try {\n      const options = {\n        method,\n        url,\n        headers: {\n          'api-token': token,\n          'Content-Type': 'application/json'\n        },\n        json: true,\n        timeout: 20000\n      };\n\n      if (body !== undefined) {\n        options.body = body;\n      }\n\n      return await httpRequest(options);\n    } catch (error) {\n      const statusCode = error?.statusCode || error?.response?.statusCode || null;\n      const shouldRetry = attempt < maxAttempts && (statusCode === 429 || (statusCode >= 500 && statusCode < 600));\n\n      if (shouldRetry) {\n        await new Promise((resolve) => setTimeout(resolve, 300 * attempt));\n        continue;\n      }\n\n      const details = error?.response?.body || error?.message || 'unexpected_error';\n      const err = new Error(`Erro na Clint em ${step}: ${method} ${path}`);\n      err.step = step;\n      err.statusCode = statusCode || 500;\n      err.details = details;\n      throw err;\n    }\n  }\n}\n\ntry {\n  const originsResponse = await apiRequest('get_origins', 'GET', '/origins?limit=250');\n  const origins = Array.isArray(originsResponse?.data) ? originsResponse.data : [];\n\n  const wantedOriginId = input.fixed_config?.origin_id;\n  const wantedOriginName = String(input.fixed_config?.origin_name || '').trim().toUpperCase();\n\n  const origin = origins.find((item) => item?.id === wantedOriginId)\n    || origins.find((item) => String(item?.name || '').trim().toUpperCase() === wantedOriginName);\n\n  if (!origin?.id) {\n    throw Object.assign(new Error('Origem alvo nao encontrada na Clint.'), {\n      step: 'resolve_origin',\n      statusCode: 502,\n      details: { wanted_origin_id: wantedOriginId, wanted_origin_name: input.fixed_config?.origin_name }\n    });\n  }\n\n  const stages = Array.isArray(origin?.stages) ? origin.stages : [];\n  const baseStage = stages.find((stage) => String(stage?.type || '').toUpperCase() === 'BASE') || stages[0];\n\n  if (!baseStage?.id) {\n    throw Object.assign(new Error('Stage BASE nao encontrado para a origem informada.'), {\n      step: 'resolve_stage',\n      statusCode: 502,\n      details: { origin_id: origin.id }\n    });\n  }\n\n  const normalized = input.normalized_payload || {};\n  const contactPayloadRaw = Object.assign({}, input.clint_payloads?.contactPayload || {});\n  const contactPayload = ensureFieldsObject(cleanObject(contactPayloadRaw));\n\n  let contactId = null;\n  let contactOperation = '';\n\n  if (normalized.email) {\n    const emailSearch = await apiRequest('search_contact_email', 'GET', `/contacts?email=${encodeURIComponent(normalized.email)}`);\n    const contactsByEmail = Array.isArray(emailSearch?.data) ? emailSearch.data : [];\n    if (contactsByEmail[0]?.id) {\n      contactId = contactsByEmail[0].id;\n    }\n  }\n\n  if (!contactId && normalized.phone) {\n    const phoneSearch = await apiRequest('search_contact_phone', 'GET', `/contacts?phone=${encodeURIComponent(normalized.phone)}`);\n    const contactsByPhone = Array.isArray(phoneSearch?.data) ? phoneSearch.data : [];\n    if (contactsByPhone[0]?.id) {\n      contactId = contactsByPhone[0].id;\n    }\n  }\n\n  if (contactId) {\n    await apiRequest('update_contact', 'POST', `/contacts/${contactId}`, contactPayload);\n    contactOperation = 'updated';\n  } else {\n    const created = await apiRequest('create_contact', 'POST', '/contacts', contactPayload);\n    contactId = extractId(created);\n    if (!contactId) {\n      throw Object.assign(new Error('Falha ao extrair contact_id apos criar contato.'), {\n        step: 'create_contact',\n        statusCode: 502,\n        details: created\n      });\n    }\n    contactOperation = 'created';\n  }\n\n  const tagName = String(input.fixed_config?.tag_name || '').trim();\n  if (tagName) {\n    await apiRequest('add_tag', 'POST', `/contacts/${contactId}/tags`, [tagName]);\n  }\n\n  const dealPayloadBase = input.clint_payloads?.dealPayloadBase || {};\n  const dealFields = cleanObject(dealPayloadBase.fields || {});\n  const titleName = normalized.nome || normalized.email || normalized.phone || `lead-${executionId}`;\n\n  const dealPayload = {\n    contact_id: contactId,\n    origin_id: origin.id,\n    stage_id: baseStage.id,\n    title: `${titleName} - ${input.fixed_config?.produto || 'Lead'}`,\n    value: Number(input.fixed_config?.value || dealPayloadBase.value || 0),\n    fields: dealFields\n  };\n\n  if (!Object.keys(dealFields).length) {\n    delete dealPayload.fields;\n  }\n\n  const createdDeal = await apiRequest('create_deal', 'POST', '/deals', dealPayload);\n  const dealId = extractId(createdDeal);\n\n  return [{\n    json: {\n      status: 'success',\n      code: 'OK',\n      message: 'Lead processado com sucesso na Clint.',\n      step: 'done',\n      http_status: 200,\n      execution_id: executionId,\n      contact_id: contactId,\n      contact_operation: contactOperation,\n      deal_id: dealId,\n      origin_id: origin.id,\n      stage_id: baseStage.id,\n      tag_name: tagName,\n      normalized_payload: normalized\n    }\n  }];\n} catch (error) {\n  const httpStatus = Number(error?.statusCode || 502);\n  return [{\n    json: {\n      status: 'integration_error',\n      code: 'CLINT_INTEGRATION_ERROR',\n      message: error?.message || 'Falha de integracao com a Clint.',\n      step: error?.step || 'unknown_step',\n      http_status: httpStatus >= 400 && httpStatus < 600 ? httpStatus : 502,\n      execution_id: executionId,\n      details: error?.details || null,\n      normalized_payload: input.normalized_payload\n    }\n  }];\n}"
+      }
+    },
+    {
+      "id": "respond-manychat-fase1",
+      "name": "Respond Manychat Fase 1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.2,
+      "position": [
+        1230,
+        310
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.http_status || 200 }}"
+        }
+      }
+    },
+    {
+      "id": "code-fail-execution-on-error-status",
+      "name": "Fail Execution On Error Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        310
+      ],
+      "parameters": {
+        "jsCode": "const status = String($json.status || '').trim().toLowerCase();\n\nif (status && status !== 'success') {\n  const code = String($json.code || 'WORKFLOW_ERROR');\n  const message = String($json.message || 'Falha no workflow');\n  throw new Error(`${code}: ${message}`);\n}\n\nreturn [{ json: $json }];\n"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Manychat Intake Test": {
+      "main": [
+        [
+          {
+            "node": "Normalize + Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Manychat Intake Prod": {
+      "main": [
+        [
+          {
+            "node": "Normalize + Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize + Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Integrate Clint (Upsert + Tag + Deal)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Integrate Clint (Upsert + Tag + Deal)": {
+      "main": [
+        [
+          {
+            "node": "Respond Manychat Fase 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond Manychat Fase 1": {
+      "main": [
+        [
+          {
+            "node": "Fail Execution On Error Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "active": false
+}

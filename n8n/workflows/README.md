@@ -10,6 +10,6 @@ Cada workflow fica isolado em sua propria pasta para facilitar evolucao por fase
 
 ## Workflows existentes
 
-- `wf-a-importacao-csv-clint`
-- `wf-b-webhook-clint-won`
-
+- `wf-a-importacao-csv-clint` (fase1 operacional)
+- `wf-b-webhook-clint-won` (bootstrap)
+- `wf-c-manychat-intake-clint` (fase1 operacional)

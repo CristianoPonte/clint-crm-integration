@@ -390,6 +390,141 @@
           ]
         }
       ]
+    },
+    {
+      "name": "4 - Clint API",
+      "item": [
+        {
+          "name": "Clint - List Origins (All)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "api-token",
+                "value": "{{clint_api_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{clint_api_base_url}}/origins?limit=250",
+              "host": [
+                "{{clint_api_base_url}}"
+              ],
+              "path": [
+                "origins"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "250"
+                }
+              ]
+            },
+            "description": "Lista todas as origins da conta Clint."
+          },
+          "response": []
+        },
+        {
+          "name": "Clint - Find Origin ID by Name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const list = Array.isArray(body?.data) ? body.data : [];",
+                  "const target = (pm.environment.get(\"origin_search_name\") || \"\").trim().toLowerCase();",
+                  "const found = list.find((item) => String(item?.name || \"\").trim().toLowerCase() === target);",
+                  "if (found?.id) {",
+                  "  pm.environment.set(\"origin_id_found\", found.id);",
+                  "  pm.test(\"Origin encontrada\", function () { pm.expect(found.id).to.be.a(\"string\"); });",
+                  "  console.log(`Origin encontrada: ${found.name} -> ${found.id}`);",
+                  "} else {",
+                  "  pm.environment.unset(\"origin_id_found\");",
+                  "  pm.test(\"Origin nao encontrada\", function () { pm.expect(found, \"origin_search_name nao localizada\").to.not.exist; });",
+                  "  console.warn(`Origin nao encontrada para origin_search_name=`);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "api-token",
+                "value": "{{clint_api_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{clint_api_base_url}}/origins?limit=250",
+              "host": [
+                "{{clint_api_base_url}}"
+              ],
+              "path": [
+                "origins"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "250"
+                }
+              ]
+            },
+            "description": "Busca origin por nome usando a variavel de ambiente origin_search_name e salva em origin_id_found."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5 - WF C (Manychat Intake)",
+      "item": [
+        {
+          "name": "WF C - Bootstrap Test",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"{{unique_name}}\",\n  \"email\": \"{{unique_email}}\",\n  \"whatsapp\": \"{{phone}}\",\n  \"carreira_pretendida\": \"Magistratura\",\n  \"utm_source\": \"manychat\",\n  \"utm_medium\": \"chatbot\",\n  \"utm_campaign\": \"wf-c-bootstrap\",\n  \"utm_term\": \"teste\",\n  \"utm_content\": \"mensagem_1\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/webhook/manychat-intake-test",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "webhook",
+                "manychat-intake-test"
+              ]
+            },
+            "description": "Teste bootstrap do WF C (normalizacao do payload do Manychat)."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const now = Date.now();",
+                  "pm.environment.set(unique_email, `wf-c.${now}@example.com`);",
+                  "pm.environment.set(unique_name, `Lead WF C ${now}`);"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
     }
   ],
   "event": [],
