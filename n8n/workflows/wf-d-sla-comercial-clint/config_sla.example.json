@@ -1,0 +1,161 @@
+{
+  "workflow_name": "WF D - SLA Comercial Diario",
+  "timezone": "America/Fortaleza",
+  "run_at_local_time": "09:00",
+  "origin": {
+    "id": "bd1bd846-0c87-4acb-b221-d7f8d2089e68",
+    "name": "Perpetuo Webinario"
+  },
+  "rules": [
+    {
+      "from_stage_id": "d34e0d52-c401-41dd-907c-80b1d27373ee",
+      "from_stage_label": "Lead Cadastrado",
+      "to_stage_id": "05a13438-b800-406b-b0c1-fd17a7f52fa6",
+      "to_stage_label": "Contato Realizado",
+      "target_minutes": 1440,
+      "priority": "high",
+      "active": true
+    },
+    {
+      "from_stage_id": "05a13438-b800-406b-b0c1-fd17a7f52fa6",
+      "from_stage_label": "Contato Realizado",
+      "to_stage_id": "582df60d-9cb4-40e5-8a66-365d7b0e8c8a",
+      "to_stage_label": "Diagnostico",
+      "target_minutes": 0,
+      "priority": "medium",
+      "active": false
+    },
+    {
+      "from_stage_id": "582df60d-9cb4-40e5-8a66-365d7b0e8c8a",
+      "from_stage_label": "Diagnostico",
+      "to_stage_id": "f58d9353-9454-487a-b7db-b125814ebf97",
+      "to_stage_label": "Negociacao",
+      "target_minutes": 0,
+      "priority": "medium",
+      "active": false
+    },
+    {
+      "from_stage_id": "f58d9353-9454-487a-b7db-b125814ebf97",
+      "from_stage_label": "Negociacao",
+      "to_stage_id": "c2d8136e-5451-4294-bf43-d16eca3c52cc",
+      "to_stage_label": "Follow-up",
+      "target_minutes": 0,
+      "priority": "medium",
+      "active": false
+    },
+    {
+      "from_stage_id": "c2d8136e-5451-4294-bf43-d16eca3c52cc",
+      "from_stage_label": "Follow-up",
+      "to_stage_id": "b12f6608-ff0a-459f-bcb5-93f1ddb37bbf",
+      "to_stage_label": "Fechado",
+      "target_minutes": 0,
+      "priority": "low",
+      "active": false
+    }
+  ],
+  "deal_fields": {
+    "capture": [
+      "id",
+      "origin_id",
+      "stage_id",
+      "stage",
+      "status",
+      "created_at",
+      "updated_at",
+      "updated_stage_at",
+      "latest_meeting_datetime",
+      "latest_meeting_link",
+      "user",
+      "contact",
+      "fields"
+    ],
+    "reference_ts_priority": [
+      "updated_stage_at",
+      "created_at"
+    ]
+  },
+  "closing": {
+    "closing_stage_id": "b12f6608-ff0a-459f-bcb5-93f1ddb37bbf",
+    "status_buckets": {
+      "WON": "ganho",
+      "LOST": "perda"
+    },
+    "default_bucket": "fechada_sem_classificacao"
+  },
+  "routing": {
+    "fallback": {
+      "key": "sem_responsavel",
+      "slack_channel": "comercial-bot",
+      "label": "Sem responsavel"
+    },
+    "sellers": [
+      {
+        "user_id": "24692342-0669-41c4-bf82-dc70499fce97",
+        "seller_label": "Aldenor Neto",
+        "seller_email": "contato@viciodeumaestudante.com.br",
+        "slack_channel": "comercial-bot",
+        "active": true
+      },
+      {
+        "user_id": "358641a1-7b3d-44b2-af15-ce30b25a370f",
+        "seller_label": "Cinara Sales",
+        "seller_email": "cinara@viciodeumaestudante.com.br",
+        "slack_channel": "comercial-bot",
+        "active": true
+      },
+      {
+        "user_id": "49b1c955-8f9d-4c21-8db8-0b77996d9207",
+        "seller_label": "Douglas Costa",
+        "seller_email": "douglas@viciodeumaestudante.com.br",
+        "slack_channel": "comercial-bot",
+        "active": true
+      },
+      {
+        "user_id": "ad3a736e-1daf-4230-928a-a841dc83d2b1",
+        "seller_label": "Erica Freitas",
+        "seller_email": "erica@viciodeumaestudante.com.br",
+        "slack_channel": "comercial-bot",
+        "active": true
+      },
+      {
+        "user_id": "2f925375-87dc-4f4f-aff2-e8c2068c600c",
+        "seller_label": "Ingrid Laurindo",
+        "seller_email": "ingrid@viciodeumaestudante.com.br",
+        "slack_channel": "comercial-bot",
+        "active": true
+      },
+      {
+        "user_id": "f8479ec1-63bb-4f09-9d8d-1bb55fcd53a0",
+        "seller_label": "Lana Dias",
+        "seller_email": "beatriz@viciodeumaestudante.com.br",
+        "slack_channel": "comercial-bot",
+        "active": true
+      },
+      {
+        "user_id": "19127d70-f3df-4e5e-b71e-49357dfe93fe",
+        "seller_label": "Mariana Gomes",
+        "seller_email": "mariana@viciodeumaestudante.com.br",
+        "slack_channel": "comercial-bot",
+        "active": true
+      },
+      {
+        "user_id": "f3aa2918-0093-463e-9b47-46a2cf21ee36",
+        "seller_label": "Ryan Santos",
+        "seller_email": "ryan@viciodeumaestudante.com.br",
+        "slack_channel": "comercial-bot",
+        "active": true
+      }
+    ]
+  },
+  "runtime": {
+    "status_filter": "OPEN",
+    "snapshot_statuses": [
+      "OPEN",
+      "WON",
+      "LOST"
+    ],
+    "page_size": 200,
+    "max_pages": 200,
+    "dry_run": true
+  }
+}

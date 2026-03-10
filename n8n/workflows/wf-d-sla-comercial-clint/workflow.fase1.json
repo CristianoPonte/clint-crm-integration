@@ -1,0 +1,459 @@
+{
+  "name": "WF D - SLA Comercial Diario (Fase 1)",
+  "nodes": [
+    {
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        220,
+        220
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        220,
+        420
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "code-load-config",
+      "name": "Code - Load Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        500,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const config = {\n  workflow_name: 'WF D - SLA Comercial Diario',\n  timezone: 'America/Fortaleza',\n  origin_id: 'bd1bd846-0c87-4acb-b221-d7f8d2089e68',\n  closing_stage_id: 'b12f6608-ff0a-459f-bcb5-93f1ddb37bbf',\n  sla_rules: [\n    {\n      from_stage_id: 'd34e0d52-c401-41dd-907c-80b1d27373ee',\n      from_stage_label: 'Lead Cadastrado',\n      to_stage_id: '05a13438-b800-406b-b0c1-fd17a7f52fa6',\n      to_stage_label: 'Contato Realizado',\n      target_minutes: 1440,\n      priority: 'high',\n      active: true\n    },\n    {\n      from_stage_id: '05a13438-b800-406b-b0c1-fd17a7f52fa6',\n      from_stage_label: 'Contato Realizado',\n      to_stage_id: '582df60d-9cb4-40e5-8a66-365d7b0e8c8a',\n      to_stage_label: 'Diagnostico',\n      target_minutes: 0,\n      priority: 'medium',\n      active: false\n    },\n    {\n      from_stage_id: '582df60d-9cb4-40e5-8a66-365d7b0e8c8a',\n      from_stage_label: 'Diagnostico',\n      to_stage_id: 'f58d9353-9454-487a-b7db-b125814ebf97',\n      to_stage_label: 'Negociacao',\n      target_minutes: 0,\n      priority: 'medium',\n      active: false\n    },\n    {\n      from_stage_id: 'f58d9353-9454-487a-b7db-b125814ebf97',\n      from_stage_label: 'Negociacao',\n      to_stage_id: 'c2d8136e-5451-4294-bf43-d16eca3c52cc',\n      to_stage_label: 'Follow-up',\n      target_minutes: 0,\n      priority: 'medium',\n      active: false\n    },\n    {\n      from_stage_id: 'c2d8136e-5451-4294-bf43-d16eca3c52cc',\n      from_stage_label: 'Follow-up',\n      to_stage_id: 'b12f6608-ff0a-459f-bcb5-93f1ddb37bbf',\n      to_stage_label: 'Fechado',\n      target_minutes: 0,\n      priority: 'low',\n      active: false\n    }\n  ],\n  routing: {\n    fallback: {\n      key: 'sem_responsavel',\n      slack_channel: 'comercial-bot',\n      label: 'Sem responsavel'\n    },\n    sellers:     [\n        {\n            'user_id': '24692342-0669-41c4-bf82-dc70499fce97',\n            'seller_label': 'Aldenor Neto',\n            'seller_email': 'contato@viciodeumaestudante.com.br',\n            'slack_channel': 'comercial-bot',\n            'active': true\n        },\n        {\n            'user_id': '358641a1-7b3d-44b2-af15-ce30b25a370f',\n            'seller_label': 'Cinara Sales',\n            'seller_email': 'cinara@viciodeumaestudante.com.br',\n            'slack_channel': 'comercial-bot',\n            'active': true\n        },\n        {\n            'user_id': '49b1c955-8f9d-4c21-8db8-0b77996d9207',\n            'seller_label': 'Douglas Costa',\n            'seller_email': 'douglas@viciodeumaestudante.com.br',\n            'slack_channel': 'comercial-bot',\n            'active': true\n        },\n        {\n            'user_id': 'ad3a736e-1daf-4230-928a-a841dc83d2b1',\n            'seller_label': 'Erica Freitas',\n            'seller_email': 'erica@viciodeumaestudante.com.br',\n            'slack_channel': 'comercial-bot',\n            'active': true\n        },\n        {\n            'user_id': '2f925375-87dc-4f4f-aff2-e8c2068c600c',\n            'seller_label': 'Ingrid Laurindo',\n            'seller_email': 'ingrid@viciodeumaestudante.com.br',\n            'slack_channel': 'comercial-bot',\n            'active': true\n        },\n        {\n            'user_id': 'f8479ec1-63bb-4f09-9d8d-1bb55fcd53a0',\n            'seller_label': 'Lana Dias',\n            'seller_email': 'beatriz@viciodeumaestudante.com.br',\n            'slack_channel': 'comercial-bot',\n            'active': true\n        },\n        {\n            'user_id': '19127d70-f3df-4e5e-b71e-49357dfe93fe',\n            'seller_label': 'Mariana Gomes',\n            'seller_email': 'mariana@viciodeumaestudante.com.br',\n            'slack_channel': 'comercial-bot',\n            'active': true\n        },\n        {\n            'user_id': 'f3aa2918-0093-463e-9b47-46a2cf21ee36',\n            'seller_label': 'Ryan Santos',\n            'seller_email': 'ryan@viciodeumaestudante.com.br',\n            'slack_channel': 'comercial-bot',\n            'active': true\n        }\n    ]\n  },\n  runtime: {\n    status_filter: 'OPEN',\n    page_size: 200,\n    max_pages: 200,\n    dry_run: false,\n    force_fake_overdue_test: false\n  }\n};\n\nconst env = (typeof process !== 'undefined' && process?.env) ? process.env : {};\nconst dryRunEnv = String(env.SLA_DRY_RUN || '').toLowerCase().trim();\nconst dryRun = dryRunEnv\n  ? ['1', 'true', 'yes', 'sim'].includes(dryRunEnv)\n  : Boolean(config.runtime.dry_run);\n\nreturn [{\n  json: {\n    run_id: `sla-${Date.now()}`,\n    run_at: new Date().toISOString(),\n    base_url: 'https://api.clint.digital/v1',\n    origin_id: config.origin_id,\n    closing_stage_id: config.closing_stage_id,\n    sla_rules: config.sla_rules,\n    routing: config.routing,\n    status_filter: config.runtime.status_filter,\n    page_size: Number(config.runtime.page_size || 200),\n    max_pages: Number(config.runtime.max_pages || 200),\n    timezone: config.timezone,\n    dry_run: dryRun,\n    force_fake_overdue_test: Boolean(config.runtime.force_fake_overdue_test)\n  }\n}];"
+      }
+    },
+    {
+      "id": "http-list-deals",
+      "name": "HTTP Request - List Deals",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        780,
+        320
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.base_url + '/deals' }}",
+        "sendHeaders": false,
+        "headerParameters": {
+          "parameters": []
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "origin_id",
+              "value": "={{ $json.origin_id }}"
+            },
+            {
+              "name": "status",
+              "value": "={{ $json.status_filter }}"
+            },
+            {
+              "name": "limit",
+              "value": "={{ $json.page_size }}"
+            },
+            {
+              "name": "page",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {
+          "pagination": {
+            "paginationMode": "updateAParameterInEachRequest",
+            "parameters": {
+              "parameters": [
+                {
+                  "type": "query",
+                  "name": "page",
+                  "value": "={{ $pageCount + 1 }}"
+                }
+              ]
+            },
+            "paginationCompleteWhen": "receiveSpecificStatusCodes",
+            "statusCodesWhenComplete": "",
+            "completeExpression": "={{ ($response.body?.data?.length || 0) < Number($json.page_size || 200) }}",
+            "limitPagesFetched": true,
+            "maxRequests": 200
+          },
+          "timeout": 20000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "RmzKMEka7BdyAlBI",
+          "name": "Clint API Header"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "aggregate-pages",
+      "name": "Aggregate - Combine Pages",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        320
+      ],
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "pages",
+        "include": "allFields"
+      }
+    },
+    {
+      "id": "code-flatten-pages",
+      "name": "Code - Flatten Deals Pages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const cfg = $('Code - Load Config').first().json;\nconst input = $json || {};\nconst pages = Array.isArray(input.pages) ? input.pages : [];\n\nconst deals = [];\nconst pageStats = [];\nlet totalCount = null;\n\nfor (let idx = 0; idx < pages.length; idx += 1) {\n  const pageBody = pages[idx] || {};\n  const pageDeals = Array.isArray(pageBody.data) ? pageBody.data : [];\n  const candidateTotal = Number(pageBody.totalCount);\n\n  if (totalCount === null && Number.isFinite(candidateTotal)) {\n    totalCount = candidateTotal;\n  }\n\n  deals.push(...pageDeals);\n  pageStats.push({\n    page: idx + 1,\n    page_count: pageDeals.length\n  });\n}\n\nif (totalCount === null) {\n  totalCount = 0;\n}\n\nif (deals.length !== totalCount) {\n  throw new Error(`Coleta paginada inconsistente: collected=${deals.length} totalCount=${totalCount}.`);\n}\n\nreturn [{\n  json: {\n    ...cfg,\n    total_count: totalCount,\n    collected_count: deals.length,\n    page_count: pageStats.length,\n    pages: pageStats,\n    deals,\n    acceptance: {\n      criterion: 'total coletado == totalCount',\n      passed: deals.length === totalCount\n    }\n  }\n}];"
+      }
+    },
+    {
+      "id": "code-compute-sla",
+      "name": "Code - Compute SLA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst nowIso = String(input.run_at || new Date().toISOString());\nconst nowTs = Date.parse(nowIso);\n\nif (!Number.isFinite(nowTs)) {\n  throw new Error(`run_at invalido: ${input.run_at}`);\n}\n\nconst rules = Array.isArray(input.sla_rules) ? input.sla_rules.filter((rule) => {\n  const validMinutes = Number.isFinite(Number(rule?.target_minutes)) && Number(rule.target_minutes) >= 0;\n  return Boolean(rule?.active) && typeof rule?.from_stage_id === 'string' && rule.from_stage_id && validMinutes;\n}) : [];\n\nif (!rules.length) {\n  throw new Error('Nenhuma regra SLA ativa encontrada em sla_rules.');\n}\n\nconst rulesByStage = new Map();\nfor (const rule of rules) {\n  rulesByStage.set(rule.from_stage_id, {\n    ...rule,\n    target_minutes: Number(rule.target_minutes)\n  });\n}\n\nfunction getFirstText(values) {\n  for (const value of values) {\n    if (value === undefined || value === null) {\n      continue;\n    }\n\n    const text = String(value).trim();\n    if (text) {\n      return text;\n    }\n  }\n\n  return null;\n}\n\nfunction resolveDealName(deal) {\n  return getFirstText([\n    deal?.title,\n    deal?.name,\n    deal?.contact?.name,\n    deal?.contact?.email,\n    deal?.fields?.name,\n    deal?.fields?.nome,\n    deal?.fields?.lead_name,\n    deal?.fields?.lead_nome\n  ]);\n}\n\nfunction parseReferenceTs(deal) {\n  const updatedStageTs = Date.parse(String(deal?.updated_stage_at || ''));\n  if (Number.isFinite(updatedStageTs)) {\n    return {\n      reference_ts: new Date(updatedStageTs).toISOString(),\n      reference_source: 'updated_stage_at',\n      reference_epoch_ms: updatedStageTs\n    };\n  }\n\n  const createdTs = Date.parse(String(deal?.created_at || ''));\n  if (Number.isFinite(createdTs)) {\n    return {\n      reference_ts: new Date(createdTs).toISOString(),\n      reference_source: 'created_at',\n      reference_epoch_ms: createdTs\n    };\n  }\n\n  return null;\n}\n\nfunction computeDealSla(deal, nowEpochMs) {\n  if (String(deal?.status || '').toUpperCase() !== 'OPEN') {\n    return null;\n  }\n\n  const stageId = String(deal?.stage_id || '').trim();\n  if (!stageId || stageId === String(input.closing_stage_id || '')) {\n    return null;\n  }\n\n  const rule = rulesByStage.get(stageId);\n  if (!rule) {\n    return null;\n  }\n\n  const reference = parseReferenceTs(deal);\n  if (!reference) {\n    return {\n      deal_id: deal?.id || null,\n      status: 'invalid_reference_ts',\n      stage_id: stageId,\n      stage_label: deal?.stage || rule.from_stage_label || '',\n      target_minutes: rule.target_minutes,\n      priority: rule.priority || 'medium'\n    };\n  }\n\n  const ageMinutes = Math.floor((nowEpochMs - reference.reference_epoch_ms) / 60000);\n  const overdueMinutes = ageMinutes - rule.target_minutes;\n\n  return {\n    deal_id: deal?.id || null,\n    deal_name: resolveDealName(deal),\n    contact_name: deal?.contact?.name || null,\n    contact_email: deal?.contact?.email || null,\n    user_id: deal?.user?.id || null,\n    user_name: deal?.user?.name || deal?.user?.full_name || null,\n    status: 'computed',\n    stage_id: stageId,\n    stage_label: deal?.stage || rule.from_stage_label || '',\n    to_stage_id: rule.to_stage_id,\n    to_stage_label: rule.to_stage_label,\n    target_minutes: rule.target_minutes,\n    age_minutes: ageMinutes,\n    overdue_minutes: overdueMinutes,\n    is_overdue: overdueMinutes > 0,\n    reference_ts: reference.reference_ts,\n    reference_source: reference.reference_source,\n    priority: rule.priority || 'medium'\n  };\n}\n\nfunction evaluateTestCases() {\n  const fixedNow = Date.parse('2026-03-06T15:00:00.000Z');\n  const firstRule = rules[0];\n\n  const overdueDeal = {\n    id: 'test-overdue',\n    status: 'OPEN',\n    stage_id: firstRule.from_stage_id,\n    stage: firstRule.from_stage_label,\n    title: 'Deal de teste com titulo',\n    updated_stage_at: '2026-03-05T14:59:00.000Z',\n    created_at: '2026-03-05T14:59:00.000Z'\n  };\n\n  const onTimeDeal = {\n    id: 'test-on-time',\n    status: 'OPEN',\n    stage_id: firstRule.from_stage_id,\n    stage: firstRule.from_stage_label,\n    title: 'Deal no prazo',\n    updated_stage_at: '2026-03-06T03:30:00.000Z',\n    created_at: '2026-03-06T03:30:00.000Z'\n  };\n\n  const fallbackDeal = {\n    id: 'test-fallback',\n    status: 'OPEN',\n    stage_id: firstRule.from_stage_id,\n    stage: firstRule.from_stage_label,\n    contact: {\n      name: 'Contato fallback'\n    },\n    updated_stage_at: null,\n    created_at: '2026-03-05T10:00:00.000Z'\n  };\n\n  const overdueResult = computeDealSla(overdueDeal, fixedNow);\n  const onTimeResult = computeDealSla(onTimeDeal, fixedNow);\n  const fallbackResult = computeDealSla(fallbackDeal, fixedNow);\n\n  const assertions = [\n    {\n      name: 'marca deal atrasado corretamente',\n      passed: Boolean(overdueResult && overdueResult.is_overdue === true && overdueResult.overdue_minutes > 0)\n    },\n    {\n      name: 'nao marca deal dentro do SLA',\n      passed: Boolean(onTimeResult && onTimeResult.is_overdue === false && onTimeResult.overdue_minutes <= 0)\n    },\n    {\n      name: 'usa fallback created_at quando updated_stage_at ausente',\n      passed: Boolean(fallbackResult && fallbackResult.reference_source === 'created_at')\n    },\n    {\n      name: 'resolve nome do deal por title quando disponivel',\n      passed: Boolean(overdueResult && overdueResult.deal_name === 'Deal de teste com titulo')\n    },\n    {\n      name: 'resolve nome do deal pelo contato quando title e name ausentes',\n      passed: Boolean(fallbackResult && fallbackResult.deal_name === 'Contato fallback')\n    }\n  ];\n\n  const failed = assertions.filter((item) => !item.passed);\n  if (failed.length) {\n    const names = failed.map((item) => item.name).join('; ');\n    throw new Error(`Falha na validacao T3: ${names}`);\n  }\n\n  return {\n    fixed_now: new Date(fixedNow).toISOString(),\n    assertions\n  };\n}\n\nconst dealList = Array.isArray(input.deals) ? input.deals : [];\nconst computed = [];\nconst invalidReferences = [];\nconst overdueDeals = [];\n\nfor (const deal of dealList) {\n  const result = computeDealSla(deal, nowTs);\n  if (!result) {\n    continue;\n  }\n\n  if (result.status === 'invalid_reference_ts') {\n    invalidReferences.push(result);\n    continue;\n  }\n\n  computed.push(result);\n  if (result.is_overdue) {\n    overdueDeals.push(result);\n  }\n}\n\n\n\n\nif (Boolean(input.force_fake_overdue_test)) {\n  const sellerList = Array.isArray(input?.routing?.sellers)\n    ? input.routing.sellers.filter((seller) => seller?.active !== false && seller?.user_id)\n    : [];\n\n  const sellerA = sellerList[0] || null;\n  const sellerB = sellerList[1] || sellerList[0] || null;\n\n  const stageA = {\n    from: input?.sla_rules?.[0]?.from_stage_label || 'Lead Cadastrado',\n    to: input?.sla_rules?.[0]?.to_stage_label || 'Contato Realizado',\n    from_id: input?.sla_rules?.[0]?.from_stage_id || null,\n    to_id: input?.sla_rules?.[0]?.to_stage_id || null\n  };\n\n  const stageB = {\n    from: input?.sla_rules?.[1]?.from_stage_label || 'Contato Realizado',\n    to: input?.sla_rules?.[1]?.to_stage_label || 'Diagnostico',\n    from_id: input?.sla_rules?.[1]?.from_stage_id || input?.sla_rules?.[0]?.from_stage_id || null,\n    to_id: input?.sla_rules?.[1]?.to_stage_id || input?.sla_rules?.[0]?.to_stage_id || null\n  };\n\n  const fakeDeals = [\n    {\n      deal_id: 'fake-overdue-a1',\n      deal_name: 'Lead Fake A1',\n      user_id: sellerA?.user_id || null,\n      user_name: sellerA?.seller_label || 'Sem responsavel',\n      stage_id: stageA.from_id,\n      stage_label: stageA.from,\n      to_stage_id: stageA.to_id,\n      to_stage_label: stageA.to,\n      overdue_minutes: 180\n    },\n    {\n      deal_id: 'fake-overdue-a2',\n      deal_name: 'Lead Fake A2',\n      user_id: sellerA?.user_id || null,\n      user_name: sellerA?.seller_label || 'Sem responsavel',\n      stage_id: stageB.from_id,\n      stage_label: stageB.from,\n      to_stage_id: stageB.to_id,\n      to_stage_label: stageB.to,\n      overdue_minutes: 95\n    },\n    {\n      deal_id: 'fake-overdue-b1',\n      deal_name: 'Lead Fake B1',\n      user_id: sellerB?.user_id || null,\n      user_name: sellerB?.seller_label || 'Sem responsavel',\n      stage_id: stageA.from_id,\n      stage_label: stageA.from,\n      to_stage_id: stageA.to_id,\n      to_stage_label: stageA.to,\n      overdue_minutes: 240\n    },\n    {\n      deal_id: 'fake-overdue-b2',\n      deal_name: 'Lead Fake B2',\n      user_id: sellerB?.user_id || null,\n      user_name: sellerB?.seller_label || 'Sem responsavel',\n      stage_id: stageB.from_id,\n      stage_label: stageB.from,\n      to_stage_id: stageB.to_id,\n      to_stage_label: stageB.to,\n      overdue_minutes: 130\n    }\n  ];\n\n  for (const fake of fakeDeals) {\n    overdueDeals.push({\n      deal_id: fake.deal_id,\n      deal_name: fake.deal_name,\n      contact_name: 'Contato Fake',\n      contact_email: 'fake@clint.local',\n      user_id: fake.user_id,\n      user_name: fake.user_name,\n      status: 'computed',\n      stage_id: fake.stage_id,\n      stage_label: fake.stage_label,\n      to_stage_id: fake.to_stage_id,\n      to_stage_label: fake.to_stage_label,\n      target_minutes: 0,\n      age_minutes: fake.overdue_minutes,\n      overdue_minutes: fake.overdue_minutes,\n      is_overdue: true,\n      reference_ts: new Date(nowTs - (fake.overdue_minutes * 60000)).toISOString(),\n      reference_source: 'fake_overdue_test',\n      priority: 'medium'\n    });\n  }\n}\n\nconst testValidation = evaluateTestCases();\n\nreturn [{\n  json: {\n    ...input,\n    sla: {\n      active_rules_count: rules.length,\n      computed_count: computed.length,\n      overdue_count: overdueDeals.length,\n      invalid_reference_count: invalidReferences.length,\n      overdue_deals: overdueDeals,\n      computed_deals: computed,\n      invalid_reference_deals: invalidReferences,\n      tests: testValidation\n    }\n  }\n}];"
+      }
+    },
+    {
+      "id": "code-group-by-seller",
+      "name": "Code - Group by Seller",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst overdueDeals = Array.isArray(input?.sla?.overdue_deals) ? input.sla.overdue_deals : [];\n\nconst fallback = input?.routing?.fallback || {\n  key: 'sem_responsavel',\n  label: 'Sem responsavel',\n  slack_channel: 'comercial-bot'\n};\n\nconst sellers = Array.isArray(input?.routing?.sellers)\n  ? input.routing.sellers.filter((seller) => seller?.active !== false && seller?.user_id)\n  : [];\n\nconst routeByUser = new Map();\nfor (const seller of sellers) {\n  routeByUser.set(String(seller.user_id), seller);\n}\n\nconst groupsByKey = new Map();\n\nfunction ensureGroup(key, metadata) {\n  if (!groupsByKey.has(key)) {\n    groupsByKey.set(key, {\n      key,\n      user_id: metadata.user_id || null,\n      seller_label: metadata.seller_label || null,\n      slack_channel: metadata.slack_channel || null,\n      is_fallback: Boolean(metadata.is_fallback),\n      deals: []\n    });\n  }\n  return groupsByKey.get(key);\n}\n\nensureGroup(String(fallback.key || 'sem_responsavel'), {\n  user_id: null,\n  seller_label: fallback.label || 'Sem responsavel',\n  slack_channel: fallback.slack_channel || 'comercial-bot',\n  is_fallback: true\n});\n\nfor (const deal of overdueDeals) {\n  const userId = String(deal?.user_id || '').trim();\n  const route = userId ? routeByUser.get(userId) : null;\n\n  if (route) {\n    const group = ensureGroup(userId, {\n      user_id: route.user_id,\n      seller_label: route.seller_label || deal.user_name || null,\n      slack_channel: route.slack_channel || null,\n      is_fallback: false\n    });\n    group.deals.push(deal);\n    continue;\n  }\n\n  const fallbackKey = String(fallback.key || 'sem_responsavel');\n  const fallbackGroup = ensureGroup(fallbackKey, {\n    user_id: null,\n    seller_label: fallback.label || 'Sem responsavel',\n    slack_channel: fallback.slack_channel || 'comercial-bot',\n    is_fallback: true\n  });\n  fallbackGroup.deals.push(deal);\n}\n\nconst groups = Array.from(groupsByKey.values())\n  .map((group) => ({\n    ...group,\n    total_overdue: group.deals.length\n  }))\n  .sort((a, b) => b.total_overdue - a.total_overdue);\n\nconst groupedDealIds = groups.flatMap((group) => group.deals.map((deal) => String(deal.deal_id || ''))).filter(Boolean);\nconst overdueDealIds = overdueDeals.map((deal) => String(deal.deal_id || '')).filter(Boolean);\n\nconst uniqueGrouped = new Set(groupedDealIds);\nconst uniqueOverdue = new Set(overdueDealIds);\n\nconst acceptancePassed = groupedDealIds.length === overdueDealIds.length\n  && uniqueGrouped.size === uniqueOverdue.size\n  && Array.from(uniqueOverdue).every((id) => uniqueGrouped.has(id));\n\nif (!acceptancePassed) {\n  throw new Error('Falha na validacao T4: deals atrasados nao estao mapeados de forma unica por grupo.');\n}\n\nreturn [{\n  json: {\n    ...input,\n    grouped: {\n      total_groups: groups.length,\n      total_overdue: overdueDeals.length,\n      sem_responsavel_count: (groups.find((group) => group.is_fallback) || { total_overdue: 0 }).total_overdue,\n      groups,\n      acceptance_t4: {\n        criterion: 'cada deal atrasado aparece em apenas 1 grupo',\n        passed: acceptancePassed\n      }\n    }\n  }\n}];"
+      }
+    },
+    {
+      "id": "code-final-summary",
+      "name": "Code - Final Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const baseInput = (() => {\n  try {\n    return $('Code - Build Slack Payload').first().json || {};\n  } catch (error) {\n    return $json || {};\n  }\n})();\n\nconst input = baseInput;\nconst sla = input.sla || {};\nconst grouped = input.grouped || {};\nconst slackPayload = input.slack_payload || {};\n\nfunction safeAll(nodeName) {\n  try {\n    return $(nodeName).all();\n  } catch (error) {\n    return [];\n  }\n}\n\nfunction redactErrorMessage(value) {\n  const text = String(value || '').trim();\n  if (!text) {\n    return 'erro_sem_detalhe';\n  }\n  return text\n    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/gi, '[redacted_email]')\n    .replace(/\\+?\\d{10,15}/g, '[redacted_phone]')\n    .slice(0, 180);\n}\n\nconst dryRun = Boolean(input.dry_run);\nconst messages = Array.isArray(slackPayload.messages) ? slackPayload.messages : [];\nconst messagesReady = Number(slackPayload.total_messages || 0);\n\nconst slackExecutions = safeAll('Slack - Send Message');\nconst snapshotInsertions = safeAll('Data Table - Insert Overdue Snapshots');\n\nlet messagesSent = 0;\nlet messagesFailed = 0;\nconst failedDeliveries = [];\n\nif (!dryRun && messagesReady > 0) {\n  for (let index = 0; index < slackExecutions.length; index += 1) {\n    const item = slackExecutions[index] || {};\n    const hasError = Boolean(item?.error || item?.json?.error);\n\n    if (hasError) {\n      messagesFailed += 1;\n      const pairedIndex = Number.isInteger(item?.pairedItem?.item) ? item.pairedItem.item : index;\n      const sourceMessage = messages[pairedIndex] || null;\n      failedDeliveries.push({\n        group_key: sourceMessage?.group_key || null,\n        channel: sourceMessage?.channel || null,\n        reason: redactErrorMessage(item?.error?.message || item?.json?.error?.message || item?.json?.error || item?.error)\n      });\n      continue;\n    }\n\n    messagesSent += 1;\n  }\n\n  const accounted = messagesSent + messagesFailed;\n  if (accounted < messagesReady) {\n    const missing = messagesReady - accounted;\n    messagesFailed += missing;\n    for (let idx = 0; idx < missing; idx += 1) {\n      const sourceMessage = messages[accounted + idx] || null;\n      failedDeliveries.push({\n        group_key: sourceMessage?.group_key || null,\n        channel: sourceMessage?.channel || null,\n        reason: 'resultado_envio_nao_retorno'\n      });\n    }\n  }\n}\n\nconst plannedSnapshots = dryRun ? 0 : (Array.isArray(sla.overdue_deals) ? sla.overdue_deals.length : 0);\nconst snapshotsInserted = dryRun\n  ? 0\n  : snapshotInsertions.reduce((sum, item) => {\n      const inserted = Number(item?.json?.insertedRows);\n      if (Number.isFinite(inserted) && inserted >= 0) {\n        return sum + inserted;\n      }\n      return sum + 1;\n    }, 0);\n\nconst startedAtIso = String(input.run_at || '');\nconst startedAtMs = Date.parse(startedAtIso);\nconst finishedAtIso = new Date().toISOString();\nconst finishedAtMs = Date.parse(finishedAtIso);\nconst durationMs = Number.isFinite(startedAtMs) && Number.isFinite(finishedAtMs)\n  ? Math.max(0, finishedAtMs - startedAtMs)\n  : null;\n\nconst acceptanceT3 = {\n  criterion: 'cenarios de teste marcam corretamente atraso e nao atraso',\n  passed: Array.isArray(sla?.tests?.assertions) ? sla.tests.assertions.every((item) => item.passed) : false,\n  assertions: sla?.tests?.assertions || []\n};\n\nconst acceptanceT4 = grouped?.acceptance_t4 || {\n  criterion: 'cada deal atrasado aparece em apenas 1 grupo',\n  passed: false\n};\n\nconst acceptanceT5 = slackPayload?.acceptance_t5 || {\n  criterion: 'mensagem contem nome do deal, fase atual, proxima fase e atraso',\n  passed: false,\n  violations: []\n};\n\nconst acceptanceT7 = {\n  criterion: 'falha parcial de envio nao interrompe run completo',\n  passed: dryRun || (messagesReady === (messagesSent + messagesFailed)),\n  failed_deliveries: failedDeliveries\n};\n\nconst acceptanceT8 = {\n  criterion: 'mensagens corretas por vendedora e persistencia confirmada',\n  passed: Boolean(acceptanceT5.passed) && (dryRun || snapshotsInserted === plannedSnapshots),\n  checks: {\n    dry_run: dryRun,\n    slack_payload_ok: Boolean(acceptanceT5.passed),\n    snapshots_persisted_ok: dryRun ? true : snapshotsInserted === plannedSnapshots\n  }\n};\n\nconst status = messagesFailed > 0 ? 'partial_success' : 'success';\n\nreturn [{\n  json: {\n    status,\n    step: 'T7/T8 - Observabilidade, falha controlada e readiness',\n    run_id: input.run_id,\n    origin_id: input.origin_id,\n    started_at: startedAtIso || null,\n    finished_at: finishedAtIso,\n    duration_ms: durationMs,\n    total_open: Number(input.total_count || 0),\n    collected_count: Number(input.collected_count || 0),\n    pages_read: Number(input.page_count || 0),\n    total_overdue: Number(sla.overdue_count || 0),\n    acceptance_t2: input.acceptance,\n    acceptance_t3: acceptanceT3,\n    acceptance_t4: acceptanceT4,\n    acceptance_t5: acceptanceT5,\n    acceptance_t7: acceptanceT7,\n    acceptance_t8: acceptanceT8,\n    sla_stats: {\n      active_rules_count: Number(sla.active_rules_count || 0),\n      computed_count: Number(sla.computed_count || 0),\n      overdue_count: Number(sla.overdue_count || 0),\n      invalid_reference_count: Number(sla.invalid_reference_count || 0)\n    },\n    grouped_stats: {\n      total_groups: Number(grouped.total_groups || 0),\n      total_overdue: Number(grouped.total_overdue || 0),\n      sem_responsavel_count: Number(grouped.sem_responsavel_count || 0)\n    },\n    slack_stats: {\n      messages_ready: messagesReady,\n      messages_sent: messagesSent,\n      messages_failed: messagesFailed,\n      channels_ready: Number(slackPayload.total_channels || 0),\n      dry_run: dryRun\n    },\n    snapshot_stats: {\n      planned_rows: plannedSnapshots,\n      inserted_rows: snapshotsInserted\n    },\n    log_summary: {\n      total_open: Number(input.total_count || 0),\n      total_overdue: Number(sla.overdue_count || 0),\n      messages_sent: messagesSent,\n      messages_failed: messagesFailed\n    },\n    messages_targets: messages.map((msg) => ({\n      group_key: msg.group_key || null,\n      channel: msg.channel || null,\n      total_overdue: Number(msg.total_overdue || 0)\n    }))\n  }\n}];"
+      }
+    },
+    {
+      "id": "code-build-slack-payload",
+      "name": "Code - Build Slack Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst groups = Array.isArray(input?.grouped?.groups) ? input.grouped.groups : [];\n\nfunction fmtMinutes(totalMinutes) {\n  const value = Number(totalMinutes);\n  if (!Number.isFinite(value)) return '-';\n  const abs = Math.abs(Math.trunc(value));\n  const h = Math.floor(abs / 60);\n  const m = abs % 60;\n  return h > 0 ? `${h}h ${m}m` : `${m}m`;\n}\n\nconst messages = [];\nconst violations = [];\nconst separator = '────────────────────────';\n\nfor (const group of groups) {\n  const deals = Array.isArray(group?.deals) ? group.deals : [];\n  if (!deals.length) {\n    continue;\n  }\n\n  const channel = group?.slack_channel || input?.routing?.fallback?.slack_channel || 'comercial-bot';\n  const sellerLabel = group?.seller_label || group?.key || 'sem_responsavel';\n  const isFallback = Boolean(group?.is_fallback);\n\n  const titleRaw = isFallback\n    ? 'SLA Diario | Deals atrasados sem responsavel'\n    : `SLA Diario | Deals atrasados de ${sellerLabel}`;\n\n  const title = `\\`${titleRaw}\\``;\n\n  const textLines = [\n    title,\n    `*Total atrasados:* ${deals.length}`,\n    ''\n  ];\n\n  const blockLines = [...textLines];\n\n  for (const deal of deals) {\n    const dealName = deal?.deal_name || deal?.contact_name || '(sem nome)';\n    const stage = deal?.stage_label || '(sem fase atual)';\n    const nextStage = deal?.to_stage_label || '(sem proxima fase)';\n    const overdue = fmtMinutes(deal?.overdue_minutes);\n    const isUsingIdAsName = String(dealName) === String(deal?.deal_id || '');\n\n    const line = `• *${dealName}* | *Fase Atual:* ${stage} | *Proxima Fase:* ${nextStage} | *Atraso:* ${overdue}`;\n\n    textLines.push(line);\n    blockLines.push(line);\n\n    const hasAllFields = Boolean(dealName && stage && nextStage && overdue !== '-' && !isUsingIdAsName);\n\n    if (!hasAllFields) {\n      violations.push({\n        group_key: group?.key || null,\n        deal_id: deal?.deal_id || null,\n        reason: isUsingIdAsName ? 'deal_name_is_id' : 'missing_required_fields'\n      });\n    }\n  }\n\n  textLines.push('', separator);\n  blockLines.push('', separator);\n\n  messages.push({\n    group_key: group?.key || null,\n    user_id: group?.user_id || null,\n    seller_label: sellerLabel,\n    is_fallback: isFallback,\n    channel,\n    total_overdue: deals.length,\n    text: textLines.join('\\n'),\n    blocks: [\n      {\n        type: 'section',\n        text: {\n          type: 'mrkdwn',\n          text: blockLines.join('\\n')\n        }\n      }\n    ],\n    deals\n  });\n}\n\nreturn [{\n  json: {\n    ...input,\n    slack_payload: {\n      total_messages: messages.length,\n      total_channels: new Set(messages.map((msg) => msg.channel)).size,\n      messages,\n      acceptance_t5: {\n        criterion: 'mensagem contem nome do deal, fase atual, proxima fase e atraso',\n        passed: violations.length === 0,\n        violations\n      }\n    }\n  }\n}];"
+      }
+    },
+    {
+      "id": "code-expand-slack-messages",
+      "name": "Code - Expand Slack Messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        460
+      ],
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst dryRun = Boolean(input.dry_run);\nif (dryRun) {\n  return [];\n}\n\nconst messages = Array.isArray(input?.slack_payload?.messages) ? input.slack_payload.messages : [];\n\nreturn messages.map((msg) => ({\n  json: {\n    run_id: input.run_id,\n    group_key: msg.group_key || null,\n    seller_label: msg.seller_label || null,\n    channel: msg.channel || '',\n    text: msg.text || ''\n  }\n}));"
+      }
+    },
+    {
+      "id": "slack-send-message",
+      "name": "Slack - Send Message",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2480,
+        460
+      ],
+      "parameters": {
+        "authentication": "accessToken",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{$json.channel}}",
+          "mode": "name"
+        },
+        "text": "={{$json.text}}",
+        "otherOptions": {
+          "appendAttribution": false,
+          "includeLinkToWorkflow": false
+        }
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "TRm8ffFEzQxKVfFZ",
+          "name": "Slack account"
+        }
+      },
+      "continueOnFail": true,
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json || {};\n\nif (Boolean(input.dry_run)) {\n  return [];\n}\n\nconst overdueDeals = Array.isArray(input?.sla?.overdue_deals) ? input.sla.overdue_deals : [];\n\nreturn overdueDeals.map((deal) => ({\n  json: {\n    run_id: input.run_id || null,\n    deal_id: deal?.deal_id || null,\n    origin_id: input.origin_id || null,\n    stage_id: deal?.stage_id || null,\n    stage_label: deal?.stage_label || null,\n    deal_status: 'OPEN',\n    close_bucket: null,\n    user_id: deal?.user_id || null,\n    seller_label: deal?.user_name || null,\n    contact_id: null,\n    contact_name: deal?.contact_name || null,\n    contact_email: deal?.contact_email || null,\n    latest_meeting_datetime: null,\n    latest_meeting_link: null,\n    reference_ts: deal?.reference_ts || null,\n    age_minutes: Number.isFinite(Number(deal?.age_minutes)) ? Number(deal.age_minutes) : null,\n    target_minutes: Number.isFinite(Number(deal?.target_minutes)) ? Number(deal.target_minutes) : null,\n    overdue_minutes: Number.isFinite(Number(deal?.overdue_minutes)) ? Number(deal.overdue_minutes) : null,\n    priority: deal?.priority || 'medium',\n    payload_json: JSON.stringify(deal || null),\n    created_at: new Date().toISOString()\n  }\n}));"
+      },
+      "id": "8d6d0c76-7e58-4e35-8f1f-80b4d9f5dc3f",
+      "name": "Code - Expand Overdue Snapshots",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1880,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "VGz5nDwPyfm29faJ",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "optimizeBulk": true
+        }
+      },
+      "id": "9f4cda8b-c7fe-43a5-a35a-145ea84eb9f7",
+      "name": "Data Table - Insert Overdue Snapshots",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        2120,
+        640
+      ]
+    },
+    {
+      "id": "code-trigger-final-summary-no-slack",
+      "name": "Code - Trigger Final Summary (No Slack Dispatch)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2480,
+        320
+      ],
+      "parameters": {
+        "jsCode": "const input = $json || {};\nconst shouldTrigger = Boolean(input.dry_run) || Number(input?.slack_payload?.total_messages || 0) === 0;\nif (!shouldTrigger) {\n  return [];\n}\nreturn [{ json: { trigger: 'no_slack_dispatch' } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code - Load Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code - Load Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Load Config": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - List Deals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - List Deals": {
+      "main": [
+        [
+          {
+            "node": "Aggregate - Combine Pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate - Combine Pages": {
+      "main": [
+        [
+          {
+            "node": "Code - Flatten Deals Pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Flatten Deals Pages": {
+      "main": [
+        [
+          {
+            "node": "Code - Compute SLA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Compute SLA": {
+      "main": [
+        [
+          {
+            "node": "Code - Group by Seller",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Group by Seller": {
+      "main": [
+        [
+          {
+            "node": "Code - Build Slack Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Build Slack Payload": {
+      "main": [
+        [
+          {
+            "node": "Code - Expand Slack Messages",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code - Expand Overdue Snapshots",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code - Trigger Final Summary (No Slack Dispatch)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Expand Slack Messages": {
+      "main": [
+        [
+          {
+            "node": "Slack - Send Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Expand Overdue Snapshots": {
+      "main": [
+        [
+          {
+            "node": "Data Table - Insert Overdue Snapshots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Trigger Final Summary (No Slack Dispatch)": {
+      "main": [
+        [
+          {
+            "node": "Code - Final Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack - Send Message": {
+      "main": [
+        [
+          {
+            "node": "Code - Final Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "active": false
+}

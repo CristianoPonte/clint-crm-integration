@@ -13,3 +13,4 @@ Cada workflow fica isolado em sua propria pasta para facilitar evolucao por fase
 - `wf-a-importacao-csv-clint` (fase1 operacional)
 - `wf-b-webhook-clint-won` (bootstrap)
 - `wf-c-manychat-intake-clint` (fase1 operacional)
+- `wf-d-sla-comercial-clint` (fase1 operacional: T1-T5 e T7-T8 concluidas; T6 parcial)

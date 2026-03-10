@@ -12,6 +12,34 @@
 
 ## Notas Técnicas
 
+### WF D - SLA Comercial Clint (Em andamento - 2026-03-06)
+- T1 concluida:
+  - criado `n8n/workflows/wf-d-sla-comercial-clint/config_sla.json` como configuracao oficial;
+  - configurados campos de reuniao (`latest_meeting_datetime`, `latest_meeting_link`);
+  - definido split de fechamento por status (`WON` => ganho, `LOST` => perda).
+- T2 concluida:
+  - criado/atualizado `n8n/workflows/wf-d-sla-comercial-clint/workflow.fase1.json`;
+  - coleta paginada migrada para `HTTP Request` nativo do n8n (sem fetch no Code node), com agregacao de paginas e validacao de aceite (`total coletado == totalCount`).
+- T3 concluida:
+  - implementado node `Code - Compute SLA` com regras ativas por stage, fallback de timestamp (`updated_stage_at` -> `created_at`) e calculo de atraso (`age_minutes`, `overdue_minutes`, `is_overdue`);
+  - validacao embutida de cenarios de atraso/nao atraso/fallback no proprio node.
+- T4 concluida:
+  - implementado node `Code - Group by Seller` com agrupamento por `user.id` e bucket `sem_responsavel`;
+  - validacao de aceite para garantir que cada deal atrasado aparece em apenas 1 grupo.
+- T5 concluida:
+  - node `Code - Build Slack Payload` validado com `acceptance_t5.passed = true`;
+  - envio por vendedora no node nativo `Slack - Send Message`.
+- T7 concluida:
+  - node `Code - Final Summary` com `log_summary` e `slack_stats.messages_sent/messages_failed`;
+  - `Slack - Send Message` com `continueOnFail` para falha parcial controlada.
+- T8 concluida:
+  - validacao E2E com `dry_run` e run real controlado (execucoes `66` e `67`);
+  - evidencia consolidada em `n8n/workflows/wf-d-sla-comercial-clint/evidencias_t8_e2e.json`.
+- Banco e contrato de dados ajustados:
+  - `sql_schema.sql` atualizado com `deal_status`, `close_bucket`, `latest_meeting_datetime`, `latest_meeting_link`.
+- Pendentes principais:
+  - T6 completo (persistencia de `sla_runs`; snapshots ja ativos em Data Table).
+
 ### WF C - Manychat Intake Clint (Concluida - 2026-03-06)
 - Workflow Fase 1 publicado e ativo:
   - `WF C - Manychat Intake Clint (Fase 1)` (`id=IDbkLRon0vF0r6ZM`)
@@ -159,3 +187,12 @@
 - Para lidar com *Upsert* (leads já existentes): detectado que o erro retornado pelo conflito de email é um `400 Bad Request` com a string `"Contact email already exists"`. Além disso, a atualização do lead ocorre com sucesso via `POST /contacts/{id}` com formato body tradicional JSON.
 - O envio de tags ( `POST /contacts/{id}/tags` ) requer obrigatoriamente um **array de strings** (ex: `["minha-tag"]`) no body da requisição (se não fizer isso, retorna erro 400).
 - Todos os IDs e nomes necessários já estão devidamente registrados em `api_mappings.md`.
+
+### Planejamento do Dashboard Comercial Clint (Documentado - 2026-03-07)
+- Criada a pasta raiz `dashboard-comercial-clint/` para concentrar a documentacao do novo produto.
+- Criado `dashboard-comercial-clint/PRD.md` com PRD completo do dashboard, cobrindo problema, objetivos, escopo, requisitos, metricas, modelo de dados, arquitetura, roadmap, riscos e criterios de aceite.
+- Criado `dashboard-comercial-clint/mapa_telas.md` com a arquitetura de informacao do frontend, modulos, fluxos, filtros globais, componentes e prioridades de tela.
+- Direcao recomendada do produto:
+  - aplicacao propria e isolada do n8n;
+  - backend Python + frontend web dedicado;
+  - foco inicial em base historica, SLA, funil, vendedores, origens/listas, perdas e reunioes.

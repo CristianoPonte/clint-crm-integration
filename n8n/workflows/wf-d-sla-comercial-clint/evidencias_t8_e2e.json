@@ -1,0 +1,218 @@
+{
+  "workflow_id": "zwV17qk1ncfHDio8",
+  "workflow_name": "WF D - SLA Comercial Diario (Fase 1)",
+  "started_at_utc": "2026-03-07T00:22:40.333212+00:00",
+  "runs": [
+    {
+      "scenario": "dry_run",
+      "execution_id": "66",
+      "status": "success",
+      "started_at": "2026-03-07T00:23:00.017Z",
+      "stopped_at": "2026-03-07T00:23:00.491Z",
+      "final_summary": {
+        "status": "success",
+        "step": "T7/T8 - Observabilidade, falha controlada e readiness",
+        "run_id": "sla-1772842980030",
+        "origin_id": "bd1bd846-0c87-4acb-b221-d7f8d2089e68",
+        "started_at": "2026-03-07T00:23:00.030Z",
+        "finished_at": "2026-03-07T00:23:00.490Z",
+        "duration_ms": 460,
+        "total_open": 4,
+        "collected_count": 4,
+        "pages_read": 1,
+        "total_overdue": 4,
+        "acceptance_t2": {
+          "criterion": "total coletado == totalCount",
+          "passed": true
+        },
+        "acceptance_t3": {
+          "criterion": "cenarios de teste marcam corretamente atraso e nao atraso",
+          "passed": true,
+          "assertions": [
+            {
+              "name": "marca deal atrasado corretamente",
+              "passed": true
+            },
+            {
+              "name": "nao marca deal dentro do SLA",
+              "passed": true
+            },
+            {
+              "name": "usa fallback created_at quando updated_stage_at ausente",
+              "passed": true
+            }
+          ]
+        },
+        "acceptance_t4": {
+          "criterion": "cada deal atrasado aparece em apenas 1 grupo",
+          "passed": true
+        },
+        "acceptance_t5": {
+          "criterion": "mensagem contem nome do deal, fase atual, proxima fase e atraso",
+          "passed": true,
+          "violations": []
+        },
+        "acceptance_t7": {
+          "criterion": "falha parcial de envio nao interrompe run completo",
+          "passed": true,
+          "failed_deliveries": []
+        },
+        "acceptance_t8": {
+          "criterion": "mensagens corretas por vendedora e persistencia confirmada",
+          "passed": true,
+          "checks": {
+            "dry_run": true,
+            "slack_payload_ok": true,
+            "snapshots_persisted_ok": true
+          }
+        },
+        "sla_stats": {
+          "active_rules_count": 1,
+          "computed_count": 4,
+          "overdue_count": 4,
+          "invalid_reference_count": 0
+        },
+        "grouped_stats": {
+          "total_groups": 3,
+          "total_overdue": 4,
+          "sem_responsavel_count": 0
+        },
+        "slack_stats": {
+          "messages_ready": 2,
+          "messages_sent": 0,
+          "messages_failed": 0,
+          "channels_ready": 1,
+          "dry_run": true
+        },
+        "snapshot_stats": {
+          "planned_rows": 0,
+          "inserted_rows": 0
+        },
+        "log_summary": {
+          "total_open": 4,
+          "total_overdue": 4,
+          "messages_sent": 0,
+          "messages_failed": 0
+        },
+        "messages_targets": [
+          {
+            "group_key": "24692342-0669-41c4-bf82-dc70499fce97",
+            "channel": "comercial-bot",
+            "total_overdue": 2
+          },
+          {
+            "group_key": "358641a1-7b3d-44b2-af15-ce30b25a370f",
+            "channel": "comercial-bot",
+            "total_overdue": 2
+          }
+        ]
+      }
+    },
+    {
+      "scenario": "real_controlled",
+      "execution_id": "67",
+      "status": "success",
+      "started_at": "2026-03-07T00:24:00.017Z",
+      "stopped_at": "2026-03-07T00:24:01.072Z",
+      "final_summary": {
+        "status": "success",
+        "step": "T7/T8 - Observabilidade, falha controlada e readiness",
+        "run_id": "sla-1772843040029",
+        "origin_id": "bd1bd846-0c87-4acb-b221-d7f8d2089e68",
+        "started_at": "2026-03-07T00:24:00.029Z",
+        "finished_at": "2026-03-07T00:24:01.071Z",
+        "duration_ms": 1042,
+        "total_open": 4,
+        "collected_count": 4,
+        "pages_read": 1,
+        "total_overdue": 4,
+        "acceptance_t2": {
+          "criterion": "total coletado == totalCount",
+          "passed": true
+        },
+        "acceptance_t3": {
+          "criterion": "cenarios de teste marcam corretamente atraso e nao atraso",
+          "passed": true,
+          "assertions": [
+            {
+              "name": "marca deal atrasado corretamente",
+              "passed": true
+            },
+            {
+              "name": "nao marca deal dentro do SLA",
+              "passed": true
+            },
+            {
+              "name": "usa fallback created_at quando updated_stage_at ausente",
+              "passed": true
+            }
+          ]
+        },
+        "acceptance_t4": {
+          "criterion": "cada deal atrasado aparece em apenas 1 grupo",
+          "passed": true
+        },
+        "acceptance_t5": {
+          "criterion": "mensagem contem nome do deal, fase atual, proxima fase e atraso",
+          "passed": true,
+          "violations": []
+        },
+        "acceptance_t7": {
+          "criterion": "falha parcial de envio nao interrompe run completo",
+          "passed": true,
+          "failed_deliveries": []
+        },
+        "acceptance_t8": {
+          "criterion": "mensagens corretas por vendedora e persistencia confirmada",
+          "passed": true,
+          "checks": {
+            "dry_run": false,
+            "slack_payload_ok": true,
+            "snapshots_persisted_ok": true
+          }
+        },
+        "sla_stats": {
+          "active_rules_count": 1,
+          "computed_count": 4,
+          "overdue_count": 4,
+          "invalid_reference_count": 0
+        },
+        "grouped_stats": {
+          "total_groups": 3,
+          "total_overdue": 4,
+          "sem_responsavel_count": 0
+        },
+        "slack_stats": {
+          "messages_ready": 2,
+          "messages_sent": 2,
+          "messages_failed": 0,
+          "channels_ready": 1,
+          "dry_run": false
+        },
+        "snapshot_stats": {
+          "planned_rows": 4,
+          "inserted_rows": 4
+        },
+        "log_summary": {
+          "total_open": 4,
+          "total_overdue": 4,
+          "messages_sent": 2,
+          "messages_failed": 0
+        },
+        "messages_targets": [
+          {
+            "group_key": "24692342-0669-41c4-bf82-dc70499fce97",
+            "channel": "comercial-bot",
+            "total_overdue": 2
+          },
+          {
+            "group_key": "358641a1-7b3d-44b2-af15-ce30b25a370f",
+            "channel": "comercial-bot",
+            "total_overdue": 2
+          }
+        ]
+      }
+    }
+  ],
+  "finished_at_utc": "2026-03-07T00:24:05.779540+00:00"
+}
